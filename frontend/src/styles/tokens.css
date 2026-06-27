@@ -1,0 +1,62 @@
+/*
+ * PatchPath design tokens — "deployment forensics console".
+ * See docs/AGENT_PLAN.md §6 "Frontend design direction".
+ *
+ * Palette: deep navy/black base, subdued slate panels, diagnostic amber for
+ * warnings, calm green for verified steps, red only for high-severity failures.
+ */
+:root {
+  /* Base surfaces */
+  --color-bg: #0b0f1a;
+  --color-surface: #121826;
+  --color-surface-raised: #1a2235;
+  --color-border: #263149;
+
+  /* Text */
+  --color-text: #e6ebf5;
+  --color-text-muted: #9aa6bf;
+  --color-text-faint: #5f6c86;
+
+  /* Brand / accent */
+  --color-accent: #4f8cff;
+  --color-accent-soft: #1e3a66;
+
+  /* Diagnostic semantics (never color-only — pair with icon/label) */
+  --color-amber: #f5a623; /* warnings / medium severity */
+  --color-green: #34d399; /* verified steps / success */
+  --color-red: #f87171; /* high-severity failures only */
+
+  /* Severity scale */
+  --severity-low: var(--color-text-muted);
+  --severity-medium: var(--color-amber);
+  --severity-high: var(--color-red);
+
+  /* Typography */
+  --font-sans: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", "SFMono-Regular", "Consolas", monospace;
+  --font-display: "Inter", system-ui, sans-serif;
+
+  /* Radii / spacing / elevation */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-2: 0 8px 24px rgba(0, 0, 0, 0.45);
+
+  /* Motion */
+  --transition-fast: 120ms ease;
+  --transition-base: 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --transition-fast: 0ms;
+    --transition-base: 0ms;
+  }
+}

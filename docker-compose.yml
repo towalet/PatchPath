@@ -1,0 +1,91 @@
+# ---------------------------------------------------------------------------
+# PatchPath — local development orchestration
+#
+#   docker compose up --build      # start db + backend + frontend
+#   docker compose logs -f backend # follow backend logs
+#   docker compose down            # stop (use -v to also drop the db volume)
+#
+# Service DNS names are used for inter-container traffic (db, backend), never
+# localhost. Secrets come from the gitignored .env files, never the image.
+# ---------------------------------------------------------------------------
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-patchpath}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-patchpath}
+      POSTGRES_DB: ${POSTGRES_DB:-patchpath}
+    ports:
+      # Bind to localhost only so the database is never exposed on the LAN.
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-patchpath} -d ${POSTGRES_DB:-patchpath}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - patchpath
+
+  backend:
+    build:
+      context: ./backend
+      target: dev
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env
+    environment:
+      # Override host-oriented defaults so the backend talks to the db service.
+      DJANGO_SETTINGS_MODULE: config.settings.development
+      DB_HOST: db
+      DB_PORT: "5432"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      # Anonymous volume keeps the image's virtualenv from being shadowed.
+      - /app/.venv
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/health/').status==200 else 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             python manage.py runserver 0.0.0.0:8000"
+    networks:
+      - patchpath
+
+  frontend:
+    build:
+      context: ./frontend
+      target: dev
+    restart: unless-stopped
+    environment:
+      # Browser calls the backend through the host port mapping, so this is a
+      # host URL, not a service-DNS URL.
+      VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:8000/api}
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    command: npm run dev -- --host 0.0.0.0
+    networks:
+      - patchpath
+
+volumes:
+  pgdata:
+
+networks:
+  patchpath:
+    driver: bridge

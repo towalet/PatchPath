@@ -1,0 +1,26 @@
+# Keep build contexts small and free of secrets.
+**/.git
+**/.gitignore
+**/.env
+**/.env.*
+!**/.env.example
+**/node_modules
+**/dist
+**/.vite
+**/__pycache__
+**/*.py[cod]
+**/.venv
+**/venv
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/.coverage
+**/htmlcov
+**/staticfiles
+**/media
+**/*.log
+**/.DS_Store
+**/.idea
+**/.vscode
+docs/
+samples/
