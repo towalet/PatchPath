@@ -6,12 +6,12 @@ import { TopNav } from "./TopNav";
 /** Authenticated app frame: top nav + sidebar + routed content. */
 export function AppShell({ children }: { children: ReactNode }) {
   return (
-    <div data-component="app-shell">
+    <div className="shell">
       <TopNav />
-      <div data-component="app-shell-body">
-        <Sidebar />
-        <main>{children}</main>
-      </div>
+      <Sidebar />
+      <main className="main">
+        <div className="main__inner">{children}</div>
+      </main>
     </div>
   );
 }

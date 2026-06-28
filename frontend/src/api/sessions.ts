@@ -1,32 +1,52 @@
 /**
  * Debug session API calls.
  * Endpoints:
- *   POST /projects/{projectId}/sessions/
- *   GET  /sessions/{id}/
- *   POST /sessions/{id}/upload/
- *   POST /sessions/{id}/analyze/
- * Scaffold stub.
+ *   GET/POST /projects/{projectId}/sessions/
+ *   GET      /sessions/{id}/
+ *   POST     /sessions/{id}/upload/
+ *   POST     /sessions/{id}/analyze/
  */
-import type { DebugSession } from "../types/diagnostics";
-// import { apiRequest } from "./client";
+import type { Paginated } from "../types/api";
+import type {
+  AnalyzeResult,
+  DebugSession,
+  DebugSessionSummary,
+  UploadResult,
+} from "../types/diagnostics";
+import { apiRequest, unwrap } from "./client";
 
-export async function createSession(
-  _projectId: string,
-  _input: { error_summary?: string },
-): Promise<DebugSession> {
-  throw new Error("sessions.createSession not implemented");
+export function createSession(
+  projectId: string,
+  input: { error_summary?: string },
+): Promise<DebugSessionSummary> {
+  return apiRequest<DebugSessionSummary>(`/projects/${projectId}/sessions/`, {
+    method: "POST",
+    body: input,
+  });
 }
 
-export async function getSession(_sessionId: string): Promise<DebugSession> {
-  throw new Error("sessions.getSession not implemented");
+export async function listProjectSessions(projectId: string): Promise<DebugSessionSummary[]> {
+  const page = await apiRequest<Paginated<DebugSessionSummary>>(
+    `/projects/${projectId}/sessions/`,
+    { method: "GET" },
+  );
+  return unwrap(page);
 }
 
-export async function uploadEvidence(_sessionId: string, _form: FormData): Promise<DebugSession> {
-  throw new Error("sessions.uploadEvidence not implemented");
+export function getSession(sessionId: string): Promise<DebugSession> {
+  return apiRequest<DebugSession>(`/sessions/${sessionId}/`, { method: "GET" });
 }
 
-export async function analyzeSession(
-  _sessionId: string,
-): Promise<{ session_id: string; status: string; report_id: string | null }> {
-  throw new Error("sessions.analyzeSession not implemented");
+export function uploadEvidence(sessionId: string, form: FormData): Promise<UploadResult> {
+  // A wholly-rejected batch returns 400 with the same {uploaded, errors} body,
+  // so accept it instead of throwing and surface the per-file errors.
+  return apiRequest<UploadResult>(`/sessions/${sessionId}/upload/`, {
+    method: "POST",
+    body: form,
+    acceptStatuses: [400],
+  });
+}
+
+export function analyzeSession(sessionId: string): Promise<AnalyzeResult> {
+  return apiRequest<AnalyzeResult>(`/sessions/${sessionId}/analyze/`, { method: "POST" });
 }

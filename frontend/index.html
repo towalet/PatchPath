@@ -7,10 +7,102 @@
       name="description"
       content="PatchPath — find the root cause of deployment failures and follow an evidence-backed fix."
     />
+    <meta name="theme-color" content="#000000" />
     <title>PatchPath — Deployment Diagnostics</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <!--
+      Inline boot screen. Lives in the document so it paints on the very first
+      frame (before the CSS/JS bundle loads) — kills the white flash and the
+      blank-#root gap. main.tsx fades #app-boot out once the app has mounted and
+      fonts are ready.
+    -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        background: #000;
+      }
+      #root {
+        min-height: 100vh;
+      }
+      #app-boot {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: grid;
+        place-items: center;
+        background: #000;
+        transition: opacity 0.4s ease;
+      }
+      #app-boot.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+      .app-boot__inner {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+      .app-boot__mark {
+        position: relative;
+        width: 34px;
+        height: 34px;
+        display: block;
+      }
+      .app-boot__mark i {
+        position: absolute;
+        display: block;
+      }
+      .app-boot__spinner {
+        width: 18px;
+        height: 18px;
+        border: 2px solid #1a1a1a;
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: app-boot-spin 0.7s linear infinite;
+      }
+      .app-boot__label {
+        font-family: "JetBrains Mono", "Consolas", monospace;
+        font-size: 11px;
+        letter-spacing: 0.28em;
+        text-transform: uppercase;
+        color: #6b6b6b;
+      }
+      @keyframes app-boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #app-boot {
+          transition: none;
+        }
+        .app-boot__spinner {
+          animation: none;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="app-boot" role="status" aria-label="Loading PatchPath">
+      <div class="app-boot__inner">
+        <span class="app-boot__mark" aria-hidden="true">
+          <i style="left: 0; top: 0; width: 13px; height: 13px; background: #ffffff"></i>
+          <i style="right: 0; top: 10px; width: 10px; height: 10px; background: #6b6b6b"></i>
+          <i style="left: 9px; bottom: 0; width: 10px; height: 10px; border: 1px solid #b8b8b8"></i>
+          <i style="left: 14px; top: 5px; width: 16px; height: 2px; background: #6b6b6b"></i>
+        </span>
+        <span class="app-boot__spinner" aria-hidden="true"></span>
+        <span class="app-boot__label">Initializing diagnostics…</span>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -1,10 +1,9 @@
 /**
  * Reports API call. Endpoint: GET /reports/{id}/
- * Scaffold stub.
  */
 import type { DiagnosisReport } from "../types/diagnostics";
-// import { apiRequest } from "./client";
+import { apiRequest } from "./client";
 
-export async function getReport(_reportId: string): Promise<DiagnosisReport> {
-  throw new Error("reports.getReport not implemented");
+export function getReport(reportId: string): Promise<DiagnosisReport> {
+  return apiRequest<DiagnosisReport>(`/reports/${reportId}/`, { method: "GET" });
 }

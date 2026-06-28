@@ -1,4 +1,16 @@
-/** Post-fix verification checklist (calm green when verified). Scaffold stub. */
-export function VerificationChecklist(_props: { items: string[] }) {
-  return <ul data-component="verification-checklist">{/* TODO: render checklist */}</ul>;
+/** Post-fix verification checklist — confirm the deploy actually recovered. */
+export function VerificationChecklist({ items }: { items: string[] }) {
+  if (!items.length) {
+    return <p className="prose">No verification steps were provided.</p>;
+  }
+  return (
+    <ul className="checklist">
+      {items.map((item, i) => (
+        <li key={i}>
+          <span className="glyph glyph--outline-bright" aria-hidden="true" />
+          {item}
+        </li>
+      ))}
+    </ul>
+  );
 }
