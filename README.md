@@ -8,7 +8,9 @@ pasted error text; PatchPath extracts evidence, detects known deployment failure
 patterns, and produces a careful, evidence-backed root-cause report — with fix
 recommendations and verification steps, and **without ever claiming certainty**.
 
-> _Screenshot / GIF placeholder — capture from the seeded demo report._
+![PatchPath demo – analysis run](assets/ezgif-8cf3456f9da65ae5.gif)
+
+![PatchPath demo – diagnosis report](assets/ezgif-84e2535da04d36b8.gif)
 
 ---
 
