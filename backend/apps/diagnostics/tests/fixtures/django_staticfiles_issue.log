@@ -1,0 +1,5 @@
+[ERROR] Internal Server Error: /
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.12/site-packages/django/contrib/staticfiles/storage.py", line 524, in stored_name
+    raise ValueError(...)
+ValueError: Missing staticfiles manifest entry for 'css/app.3f2a.css'

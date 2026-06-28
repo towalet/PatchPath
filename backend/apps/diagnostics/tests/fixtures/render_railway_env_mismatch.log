@@ -1,0 +1,4 @@
+==> Render: starting service 'web'
+[INFO] App booting in production mode
+RuntimeError: environment variable STRIPE_SECRET_KEY is not set for this service.
+Add it under Environment > Service Variables in the Render dashboard and redeploy.

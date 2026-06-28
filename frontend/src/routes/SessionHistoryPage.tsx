@@ -3,7 +3,6 @@ import { useMemo, useState } from "react";
 import { SessionRow } from "../components/diagnostics/rows";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
-import { LoadingState } from "../components/ui/LoadingState";
 import { listProjects } from "../api/projects";
 import { listProjectSessions } from "../api/sessions";
 import { useFetch } from "../hooks/useFetch";
@@ -12,7 +11,7 @@ import type { DebugSessionSummary, SessionStatus } from "../types/diagnostics";
 const STATUSES: (SessionStatus | "")[] = ["", "completed", "failed", "analyzing", "pending"];
 
 export default function SessionHistoryPage() {
-  const { data, loading, error, refetch } = useFetch<DebugSessionSummary[]>(async () => {
+  const { data, error, refetch } = useFetch<DebugSessionSummary[]>(async () => {
     const projects = await listProjects();
     const lists = await Promise.all(projects.map((p) => listProjectSessions(p.id)));
     return lists
@@ -47,7 +46,6 @@ export default function SessionHistoryPage() {
         </div>
       </header>
 
-      {loading ? <LoadingState label="Loading history…" /> : null}
       {error ? (
         <ErrorState
           message={error.message}

@@ -12,7 +12,6 @@ import { VerificationChecklist } from "../components/diagnostics/VerificationChe
 import { Badge } from "../components/ui/Badge";
 import { Card } from "../components/ui/Card";
 import { ErrorState } from "../components/ui/ErrorState";
-import { LoadingState } from "../components/ui/LoadingState";
 import { getReport } from "../api/reports";
 import { getSession } from "../api/sessions";
 import { useFetch } from "../hooks/useFetch";
@@ -21,13 +20,12 @@ import { formatDate } from "../utils/format";
 export default function ReportPage() {
   const { reportId } = useParams();
 
-  const { data, loading, error, refetch } = useFetch(async () => {
+  const { data, error, refetch } = useFetch(async () => {
     const report = await getReport(reportId!);
     const session = await getSession(report.session_id).catch(() => null);
     return { report, session };
   }, [reportId]);
 
-  if (loading) return <LoadingState label="Loading report…" />;
   if (error)
     return (
       <ErrorState

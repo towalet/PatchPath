@@ -19,7 +19,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-patchpath}
     ports:
       # Bind to localhost only so the database is never exposed on the LAN.
-      - "127.0.0.1:5432:5432"
+      # Host port is configurable because local Postgres often already owns 5432.
+      - "127.0.0.1:${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
@@ -46,6 +47,7 @@ services:
       - "8000:8000"
     volumes:
       - ./backend:/app
+      - ./samples:/samples:ro
       # Anonymous volume keeps the image's virtualenv from being shadowed.
       - /app/.venv
     depends_on:

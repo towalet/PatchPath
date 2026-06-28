@@ -6,7 +6,6 @@ import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { Input } from "../components/ui/Input";
-import { LoadingState } from "../components/ui/LoadingState";
 import { createProject, listProjects } from "../api/projects";
 import { useFetch } from "../hooks/useFetch";
 import type { ApiError } from "../types/api";
@@ -15,7 +14,7 @@ import { formatDate } from "../utils/format";
 const PROVIDERS = ["", "Vercel", "Render", "Railway", "Fly.io", "AWS", "Heroku", "Docker", "Other"];
 
 export default function ProjectsPage() {
-  const { data: projects, loading, error, refetch } = useFetch(listProjects, []);
+  const { data: projects, error, refetch } = useFetch(listProjects, []);
 
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -109,7 +108,6 @@ export default function ProjectsPage() {
         </div>
       ) : null}
 
-      {loading ? <LoadingState label="Loading projects…" /> : null}
       {error ? (
         <ErrorState
           message={error.message}

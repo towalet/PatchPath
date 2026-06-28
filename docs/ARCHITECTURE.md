@@ -73,7 +73,10 @@ flowchart TD
 
 ## Current status
 
-This repository is **scaffolded structure**: the foundation (settings, config,
-auth, user model, Docker, frontend shell, design tokens) is in place, and the
-diagnostics domain + services + UI are stub files marked with `TODO`, ready to be
-implemented feature-by-feature per the phases in [AGENT_PLAN.md](AGENT_PLAN.md) §15.
+This repository now contains the MVP vertical slice: email/JWT auth,
+ownership-scoped project/session/report APIs, upload validation and redaction,
+deterministic rule detection, evidence-bundle construction, schema-validated AI
+report generation, a React diagnostic workflow, and seeded demo data. Remaining
+hardening work is mostly operational: broader smoke testing, production deploy
+settings, and replacing the synchronous analysis path with background jobs when
+the MVP outgrows request/response analysis.

@@ -1430,7 +1430,7 @@ Script:
 2. Log in as demo user.
 3. Create project `Django Render API`.
 4. Start a new analysis.
-5. Upload `render-django-database-url.log`, `.env.example`, and `settings-snippet.py`.
+5. Upload `render-django-database-url.log`, `env.example.txt`, and `settings-snippet.py`.
 6. Explain that PatchPath runs rule detection before AI.
 7. Click analyze.
 8. On report page, point out:

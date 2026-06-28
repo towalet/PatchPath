@@ -162,6 +162,7 @@ export interface FaultyTerminalProps {
   mouseReact?: boolean;
   mouseStrength?: number;
   pageLoadAnimation?: boolean;
+  maxDpr?: number;
   className?: string;
 }
 
@@ -180,6 +181,7 @@ export default function FaultyTerminal({
   mouseReact = true,
   mouseStrength = 0.15,
   pageLoadAnimation = true,
+  maxDpr = 2,
   className,
 }: FaultyTerminalProps) {
   const hostRef = useRef<HTMLDivElement>(null);
@@ -192,6 +194,7 @@ export default function FaultyTerminal({
     let raf = 0;
     let ro: ResizeObserver | null = null;
     let onMove: ((e: MouseEvent) => void) | null = null;
+    let onVisibilityChange: (() => void) | null = null;
     let gl: import("ogl").OGLRenderingContext | null = null;
     let canvas: HTMLCanvasElement | null = null;
 
@@ -207,7 +210,7 @@ export default function FaultyTerminal({
 
       const { Renderer, Program, Mesh, Color, Triangle } = ogl;
       const tintVec = hexToRgb(tint);
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
 
       const renderer = new Renderer({ dpr });
       gl = renderer.gl;
@@ -275,8 +278,13 @@ export default function FaultyTerminal({
       const reduce =
         window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      const update = (t: number) => {
+      const scheduleFrame = () => {
+        if (raf || document.hidden) return;
         raf = requestAnimationFrame(update);
+      };
+
+      const update = (t: number) => {
+        raf = 0;
         if (reduce) {
           program.uniforms.iTime.value = 8.0; // static frame
           program.uniforms.uPageLoadProgress.value = 1;
@@ -294,8 +302,18 @@ export default function FaultyTerminal({
           program.uniforms.uMouse.value[1] = smooth.y;
         }
         renderer.render({ scene: mesh });
+        if (!reduce) scheduleFrame();
       };
-      raf = requestAnimationFrame(update);
+      onVisibilityChange = () => {
+        if (document.hidden && raf) {
+          cancelAnimationFrame(raf);
+          raf = 0;
+          return;
+        }
+        scheduleFrame();
+      };
+      document.addEventListener("visibilitychange", onVisibilityChange);
+      scheduleFrame();
       host.appendChild(canvas);
     })();
 
@@ -304,11 +322,7 @@ export default function FaultyTerminal({
       if (raf) cancelAnimationFrame(raf);
       if (ro) ro.disconnect();
       if (onMove) host.removeEventListener("mousemove", onMove);
-      try {
-        gl?.getExtension("WEBGL_lose_context")?.loseContext();
-      } catch {
-        /* ignore */
-      }
+      if (onVisibilityChange) document.removeEventListener("visibilitychange", onVisibilityChange);
       if (canvas && canvas.parentNode === host) host.removeChild(canvas);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps

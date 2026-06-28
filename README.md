@@ -8,7 +8,7 @@ pasted error text; PatchPath extracts evidence, detects known deployment failure
 patterns, and produces a careful, evidence-backed root-cause report — with fix
 recommendations and verification steps, and **without ever claiming certainty**.
 
-> _Screenshot / GIF placeholder — add once the UI is built._
+> _Screenshot / GIF placeholder — capture from the seeded demo report._
 
 ---
 
@@ -66,9 +66,9 @@ PatchPath/
 ├── backend/            # Django project + DRF API
 │   ├── config/         #   split settings, urls, wsgi/asgi, health check
 │   └── apps/
-│       ├── accounts/   #   custom email user + JWT auth  (implemented)
-│       └── diagnostics/#   domain models, API, service pipeline  (scaffold)
-├── frontend/           # React + Vite + TypeScript SPA  (shell scaffolded)
+│       ├── accounts/   #   custom email user + JWT auth
+│       └── diagnostics/#   domain models, API, detector, report pipeline
+├── frontend/           # React + Vite + TypeScript SPA
 ├── docs/               # plan, architecture, API, demo script
 ├── samples/            # safe demo evidence files
 ├── docker-compose.yml  # local orchestration
@@ -87,6 +87,14 @@ make up                                    # db + backend + frontend
 
 - API: http://localhost:8000/api/health/
 - Frontend: http://localhost:5173
+
+Seed the recruiter demo once the containers are healthy:
+
+```bash
+make seed
+```
+
+Demo login: `demo@patchpath.dev` / `PatchPathDemo123!`.
 
 ### Option B — run services directly
 
@@ -112,7 +120,8 @@ Backend variables are documented in [backend/.env.example](backend/.env.example)
 (Django, database, JWT, CORS, AI, upload limits). The frontend reads
 `VITE_API_BASE_URL` from [frontend/.env.example](frontend/.env.example).
 
-Leave `OPENAI_API_KEY` blank to run the deterministic pipeline only.
+Leave `OPENAI_API_KEY` blank for the seeded offline demo. Live `Analyze` runs
+still require an OpenAI-compatible key because the final report is model-backed.
 
 ## Running tests
 
@@ -143,11 +152,11 @@ and Vercel/Render/Railway config mismatches. Full list in
 
 ## Project status
 
-The **foundation is built** (split settings, security baseline, email/JWT auth,
-custom user model, Docker, frontend shell, design tokens, docs). The diagnostics
-**domain, service pipeline, and UI screens are scaffolded stubs** marked with
-`TODO`, ready to be implemented feature-by-feature per the phased roadmap in
-[docs/AGENT_PLAN.md](docs/AGENT_PLAN.md) §15.
+PatchPath has the MVP vertical slice implemented: auth, project/session APIs,
+secure text uploads, rule detection, evidence bundles, schema-validated AI
+reports, report history, a React workflow, and seeded demo data. Current Phase 8
+work focuses on fresh-clone reliability, demo polish, smoke testing, and keeping
+docs aligned with the implementation.
 
 ## Roadmap
 

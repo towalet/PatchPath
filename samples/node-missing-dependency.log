@@ -1,0 +1,15 @@
+==> Deploying Node service
+==> Running npm start
+node:internal/modules/cjs/loader:1147
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /app/server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1144:15)
+    at Module._load (node:internal/modules/cjs/loader:985:27)
+code: 'MODULE_NOT_FOUND'
+
+Node.js v20.11.1
+==> Process exited with status 1

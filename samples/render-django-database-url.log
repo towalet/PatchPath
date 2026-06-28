@@ -1,0 +1,12 @@
+==> Deploying Django Render API
+==> Build succeeded
+==> Starting service with: gunicorn config.wsgi:application
+2026-06-27T18:42:11.184Z app[web.1]: Booting worker with pid: 18
+2026-06-27T18:42:11.409Z app[web.1]: Traceback (most recent call last):
+2026-06-27T18:42:11.410Z app[web.1]:   File "/app/config/settings/production.py", line 8, in <module>
+2026-06-27T18:42:11.410Z app[web.1]:     DATABASES = {"default": dj_database_url.parse(os.environ["DATABASE_URL"])}
+2026-06-27T18:42:11.410Z app[web.1]:   File "<frozen os>", line 679, in __getitem__
+2026-06-27T18:42:11.410Z app[web.1]: KeyError: 'DATABASE_URL'
+2026-06-27T18:42:11.411Z app[web.1]: django.core.exceptions.ImproperlyConfigured: Set the DATABASE_URL environment variable
+2026-06-27T18:42:11.522Z app[web.1]: exited with status 1
+==> Render detected that the process exited before binding to a port.

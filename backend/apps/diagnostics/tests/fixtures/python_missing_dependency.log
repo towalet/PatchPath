@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/app/manage.py", line 11, in main
+    from django.core.management import execute_from_command_line
+  File "/app/manage.py", line 22, in <module>
+    main()
+ModuleNotFoundError: No module named 'gunicorn'
+==> Exited with status 1

@@ -1,0 +1,7 @@
+==> Build successful 🎉
+==> Deploying...
+[2024-05-01 10:12:03 +0000] [1] [INFO] Starting gunicorn 22.0.0
+[2024-05-01 10:12:03 +0000] [1] [INFO] Listening at: http://0.0.0.0:10000 (1)
+[2024-05-01 10:12:03 +0000] [9] [INFO] Booting worker with pid: 9
+Application startup complete.
+==> Your service is live 🎉

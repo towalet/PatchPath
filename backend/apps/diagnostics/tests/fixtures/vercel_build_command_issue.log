@@ -1,0 +1,6 @@
+Vercel CLI 32.0.0
+Installing dependencies...
+Running "npm run build"
+Build completed in /vercel/output
+Error: No Output Directory named "dist" found after the Build completed.
+Configure the Output Directory in your Project Settings.

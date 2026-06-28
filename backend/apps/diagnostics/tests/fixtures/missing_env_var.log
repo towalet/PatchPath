@@ -1,0 +1,7 @@
+==> Running 'gunicorn config.wsgi'
+Traceback (most recent call last):
+  File "/app/config/settings/production.py", line 18, in <module>
+    SECRET_KEY = env.str("SECRET_KEY")
+django.core.exceptions.ImproperlyConfigured: The SECRET_KEY setting must not be empty.
+Missing required environment variable: SECRET_KEY
+==> Exited with status 1

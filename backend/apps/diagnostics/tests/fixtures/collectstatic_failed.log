@@ -1,0 +1,6 @@
+==> Running 'python manage.py collectstatic --no-input'
+0 static files copied to '/app/staticfiles'.
+Traceback (most recent call last):
+django.core.exceptions.SuspiciousFileOperation: The joined path is located
+outside of the base path component.
+collectstatic failed: 1 error during post-processing.

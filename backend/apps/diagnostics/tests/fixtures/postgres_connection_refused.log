@@ -1,0 +1,5 @@
+[INFO] Running migrations
+Traceback (most recent call last):
+django.db.utils.OperationalError: could not connect to server: Connection refused
+    Is the server running on host "db" (10.0.0.5) and accepting
+    TCP/IP connections on port 5432?

@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="PatchPath — find the root cause of deployment failures and follow an evidence-backed fix."
+      content="PatchPath - find the root cause of deployment failures and follow an evidence-backed fix."
     />
     <meta name="theme-color" content="#000000" />
-    <title>PatchPath — Deployment Diagnostics</title>
+    <title>PatchPath - Deployment Diagnostics</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -17,9 +17,8 @@
     />
     <!--
       Inline boot screen. Lives in the document so it paints on the very first
-      frame (before the CSS/JS bundle loads) — kills the white flash and the
-      blank-#root gap. main.tsx fades #app-boot out once the app has mounted and
-      fonts are ready.
+      frame before the CSS/JS bundle loads, avoiding a white flash or blank root.
+      main.tsx fades #app-boot out once the app has mounted and fonts are ready.
     -->
     <style>
       html,
@@ -37,7 +36,7 @@
         display: grid;
         place-items: center;
         background: #000;
-        transition: opacity 0.4s ease;
+        transition: opacity 0.45s ease;
       }
       #app-boot.is-hidden {
         opacity: 0;
@@ -47,25 +46,46 @@
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 20px;
+        gap: 18px;
+        width: min(560px, 78vw);
       }
-      .app-boot__mark {
+      .app-boot__line {
         position: relative;
-        width: 34px;
-        height: 34px;
         display: block;
+        width: 100%;
+        height: 16px;
+        border: 1px solid #2a2a2a;
+        background:
+          repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.08) 0 10px, transparent 10px 16px),
+          #000;
+        overflow: hidden;
+        box-shadow: 0 0 36px rgba(255, 255, 255, 0.08);
       }
-      .app-boot__mark i {
+      .app-boot__line::before {
+        content: "";
         position: absolute;
-        display: block;
+        inset: 2px;
+        width: 42%;
+        background: repeating-linear-gradient(
+          90deg,
+          #fff 0 10px,
+          rgba(255, 255, 255, 0.65) 10px 12px,
+          transparent 12px 16px
+        );
+        animation: app-boot-line 1.2s steps(14, end) infinite;
       }
-      .app-boot__spinner {
-        width: 18px;
-        height: 18px;
-        border: 2px solid #1a1a1a;
-        border-top-color: #ffffff;
-        border-radius: 50%;
-        animation: app-boot-spin 0.7s linear infinite;
+      .app-boot__line::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background-image: repeating-linear-gradient(
+          0deg,
+          transparent 0,
+          transparent 2px,
+          rgba(0, 0, 0, 0.5) 3px,
+          transparent 4px
+        );
       }
       .app-boot__label {
         font-family: "JetBrains Mono", "Consolas", monospace;
@@ -74,17 +94,22 @@
         text-transform: uppercase;
         color: #6b6b6b;
       }
-      @keyframes app-boot-spin {
+      @keyframes app-boot-line {
+        from {
+          transform: translateX(-44%);
+        }
         to {
-          transform: rotate(360deg);
+          transform: translateX(242%);
         }
       }
       @media (prefers-reduced-motion: reduce) {
         #app-boot {
           transition: none;
         }
-        .app-boot__spinner {
+        .app-boot__line::before {
           animation: none;
+          transform: none;
+          width: 72%;
         }
       }
     </style>
@@ -93,14 +118,8 @@
     <div id="root"></div>
     <div id="app-boot" role="status" aria-label="Loading PatchPath">
       <div class="app-boot__inner">
-        <span class="app-boot__mark" aria-hidden="true">
-          <i style="left: 0; top: 0; width: 13px; height: 13px; background: #ffffff"></i>
-          <i style="right: 0; top: 10px; width: 10px; height: 10px; background: #6b6b6b"></i>
-          <i style="left: 9px; bottom: 0; width: 10px; height: 10px; border: 1px solid #b8b8b8"></i>
-          <i style="left: 14px; top: 5px; width: 16px; height: 2px; background: #6b6b6b"></i>
-        </span>
-        <span class="app-boot__spinner" aria-hidden="true"></span>
-        <span class="app-boot__label">Initializing diagnostics…</span>
+        <span class="app-boot__line" aria-hidden="true"></span>
+        <span class="app-boot__label">Initializing diagnostics...</span>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

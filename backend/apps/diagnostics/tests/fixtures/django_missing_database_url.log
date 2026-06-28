@@ -1,0 +1,11 @@
+==> Starting service with 'gunicorn config.wsgi'
+[2024-05-01 10:12:03 +0000] [1] [INFO] Starting gunicorn 22.0.0
+Traceback (most recent call last):
+  File "/app/config/settings/production.py", line 41, in <module>
+    DATABASES = {"default": dj_database_url.parse(os.environ["DATABASE_URL"])}
+                                                  ~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/os.py", line 685, in __getitem__
+    raise KeyError(key) from None
+KeyError: 'DATABASE_URL'
+django.core.exceptions.ImproperlyConfigured: Set the DATABASE_URL environment variable
+==> Exited with status 1

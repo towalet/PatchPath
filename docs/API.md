@@ -11,14 +11,14 @@ to the authenticated owner. Full request/response shapes live in
 | POST | `/api/auth/login/` | none | ✅ implemented |
 | POST | `/api/auth/refresh/` | none | ✅ implemented |
 | GET | `/api/auth/me/` | JWT | ✅ implemented |
-| GET | `/api/dashboard/` | JWT | 🚧 scaffold |
-| GET / POST | `/api/projects/` | JWT | 🚧 scaffold |
-| GET | `/api/projects/{id}/` | JWT | 🚧 scaffold |
-| POST | `/api/projects/{project_id}/sessions/` | JWT | 🚧 scaffold |
-| GET | `/api/sessions/{id}/` | JWT | 🚧 scaffold |
-| POST | `/api/sessions/{id}/upload/` | JWT | 🚧 scaffold |
-| POST | `/api/sessions/{id}/analyze/` | JWT | 🚧 scaffold |
-| GET | `/api/reports/{id}/` | JWT | 🚧 scaffold |
+| GET | `/api/dashboard/` | JWT | implemented |
+| GET / POST | `/api/projects/` | JWT | implemented |
+| GET | `/api/projects/{id}/` | JWT | implemented |
+| GET / POST | `/api/projects/{project_id}/sessions/` | JWT | implemented |
+| GET | `/api/sessions/{id}/` | JWT | implemented |
+| POST | `/api/sessions/{id}/upload/` | JWT | implemented |
+| POST | `/api/sessions/{id}/analyze/` | JWT | implemented |
+| GET | `/api/reports/{id}/` | JWT | implemented |
 
 ## Throttling scopes
 
@@ -41,3 +41,13 @@ curl -X POST http://localhost:8000/api/auth/register/ \
 curl http://localhost:8000/api/auth/me/ \
   -H 'Authorization: Bearer <access-token>'
 ```
+
+## Demo data
+
+After the stack is running, seed a complete demo account and report:
+
+```bash
+make seed
+```
+
+Login: `demo@patchpath.dev` / `PatchPathDemo123!`.

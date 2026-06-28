@@ -1,0 +1,15 @@
+> app@1.0.0 start
+> node dist/server.js
+
+node:internal/modules/cjs/loader:1143
+  throw err;
+  ^
+
+Error: Cannot find module 'express'
+Require stack:
+- /app/dist/server.js
+    at Module._resolveFilename (node:internal/modules/cjs/loader:1140:15)
+    at Module._load (node:internal/modules/cjs/loader:981:27)
+    code: 'MODULE_NOT_FOUND',
+npm ERR! code ELIFECYCLE
+npm ERR! Exited with status 1

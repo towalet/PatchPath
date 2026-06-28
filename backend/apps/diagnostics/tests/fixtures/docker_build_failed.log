@@ -1,0 +1,6 @@
+#12 [builder 6/9] RUN pip install -r requirements.txt
+#12 2.310 ERROR: Could not find a version that satisfies the requirement psycopg
+#12 ERROR: process "/bin/sh -c pip install -r requirements.txt" did not complete
+------
+failed to solve: process "/bin/sh -c pip install -r requirements.txt" did not
+complete successfully: exit code: 1

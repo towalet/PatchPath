@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 
 import { AppShell } from "../layout/AppShell";
+import { LoadingState } from "../ui/LoadingState";
 import { useAuth } from "../../hooks/useAuth";
 
 /**
@@ -13,11 +14,7 @@ export function ProtectedRoute() {
   const location = useLocation();
 
   if (status === "loading") {
-    return (
-      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center" }}>
-        <div data-component="loading-state">Restoring session…</div>
-      </div>
-    );
+    return <LoadingState label="Restoring session..." fullscreen />;
   }
 
   if (status === "anonymous") {

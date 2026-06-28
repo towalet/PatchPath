@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { ProductBackdrop } from "../background/ProductBackdrop";
 import { Sidebar } from "./Sidebar";
 import { TopNav } from "./TopNav";
 
@@ -7,6 +8,7 @@ import { TopNav } from "./TopNav";
 export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="shell">
+      <ProductBackdrop />
       <TopNav />
       <Sidebar />
       <main className="main">

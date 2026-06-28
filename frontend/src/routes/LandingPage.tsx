@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
+import { prefetchDashboard } from "../api/dashboard";
 import patchPathLogo from "../assets/patchpath-logo.png";
 import FaultyTerminal from "../components/background/FaultyTerminal";
+import { useAuth } from "../hooks/useAuth";
 import { useReveal } from "../hooks/useReveal";
 
 /** A scroll-reveal container: its `.reveal-item` descendants settle in when it
@@ -261,6 +263,17 @@ function RepairSequence() {
 }
 
 export default function LandingPage() {
+  const { status } = useAuth();
+  const hasSession = status === "authenticated" || status === "loading";
+  const productHref = hasSession ? "/dashboard" : "/register";
+  const productLabel = hasSession ? "Open dashboard" : "Run a diagnosis";
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      prefetchDashboard();
+    }
+  }, [status]);
+
   return (
     <div className="lp" id="top">
       {/* ===== NAVBAR ===== */}
@@ -284,11 +297,14 @@ export default function LandingPage() {
           <a href="#how" className="lp-nav__link">
             How it works
           </a>
-          <Link to="/login" className="lp-nav__link">
-            Sign in
+          <Link
+            to={hasSession ? "/dashboard" : "/login"}
+            className="lp-nav__link"
+          >
+            {hasSession ? "Dashboard" : "Sign in"}
           </Link>
-          <Link to="/register" data-variant="primary" data-size="sm">
-            Run a diagnosis
+          <Link to={productHref} data-variant="primary" data-size="sm">
+            {productLabel}
           </Link>
         </div>
       </nav>
@@ -311,8 +327,9 @@ export default function LandingPage() {
 
         <div className="lp-hero__inner">
           <div className="lp-eyebrow reveal" style={{ animationDelay: "0.1s" }}>
-            <span className="node-pulse" aria-hidden="true" />
-            SYSTEM DIAGNOSTIC // ONLINE
+            <span className="lp-eyebrow__tag">render.log</span>
+            <span className="lp-eyebrow__line">exit 1</span>
+            <span className="lp-eyebrow__reason">missing DATABASE_URL</span>
           </div>
 
           <h1 className="lp-headline">
@@ -347,9 +364,9 @@ export default function LandingPage() {
           </p>
 
           <div className="lp-cta-row reveal" style={{ animationDelay: "1.15s" }}>
-            <Link to="/register" data-variant="primary" data-size="lg">
+            <Link to={productHref} data-variant="primary" data-size="lg">
               <span className="btn__dot" aria-hidden="true" />
-              Run a diagnosis
+              {productLabel}
             </Link>
             <a href="#how" data-variant="secondary" data-size="lg">
               See how it works
@@ -462,14 +479,14 @@ export default function LandingPage() {
             Upload the evidence, read the diagnosis, ship the fix. One clear path forward.
           </p>
           <Link
-            to="/register"
+            to={productHref}
             data-variant="primary"
             data-size="lg"
             className="reveal-item"
             style={{ marginTop: 36, ...rd(230) }}
           >
             <span className="btn__dot" aria-hidden="true" />
-            Run a diagnosis
+            {productLabel}
           </Link>
         </RevealGroup>
       </section>
