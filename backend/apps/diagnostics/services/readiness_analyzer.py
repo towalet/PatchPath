@@ -101,9 +101,16 @@ def _check_passes(check: Check, ps: ProjectSource, stacks: list[str]) -> tuple[b
 
     if check.id == "has_dockerfile_or_target":
         platform_files = [
-            "Dockerfile", "docker-compose", "vercel.json", "render.yaml",
-            "railway.json", "railway.toml", "Procfile", "fly.toml",
-            "netlify.toml", "app.json",
+            "Dockerfile",
+            "docker-compose",
+            "vercel.json",
+            "render.yaml",
+            "railway.json",
+            "railway.toml",
+            "Procfile",
+            "fly.toml",
+            "netlify.toml",
+            "app.json",
         ]
         for pf in platform_files:
             if _find_path(tree_set, pf):
@@ -128,9 +135,7 @@ def _check_passes(check: Check, ps: ProjectSource, stacks: list[str]) -> tuple[b
             return True, ""
         lines = content.splitlines()
         user_lines = [ln for ln in lines if ln.strip().startswith("USER ")]
-        has_nonroot = any(
-            "root" not in ln.lower() for ln in user_lines
-        )
+        has_nonroot = any("root" not in ln.lower() for ln in user_lines)
         return (len(user_lines) > 0 and has_nonroot), "Dockerfile"
 
     if check.id == "compose_has_depends_on":
@@ -209,10 +214,7 @@ def _check_passes(check: Check, ps: ProjectSource, stacks: list[str]) -> tuple[b
             for kw in ("os.environ", "os.getenv", "environ.get", "env(", "SECRET_KEY_FROM")
         )
         # Fail if there's a hardcoded assignment (simple heuristic).
-        has_hardcoded = (
-            "SECRET_KEY = '" in settings_content
-            or 'SECRET_KEY = "' in settings_content
-        )
+        has_hardcoded = "SECRET_KEY = '" in settings_content or 'SECRET_KEY = "' in settings_content
         if has_hardcoded and not has_env_read:
             return False, "settings.py"
         return True, "settings.py"
@@ -243,9 +245,7 @@ def analyze(ps: ProjectSource) -> dict:
 
     for check in CHECKS:
         # Skip if check applies only to specific stacks and none matched.
-        if check.applies_to_stacks and not any(
-            s in stacks for s in check.applies_to_stacks
-        ):
+        if check.applies_to_stacks and not any(s in stacks for s in check.applies_to_stacks):
             continue
 
         passes, source = _check_passes(check, ps, stacks)

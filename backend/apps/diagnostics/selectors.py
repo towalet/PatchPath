@@ -53,7 +53,9 @@ def dashboard_summary(user) -> dict:
     )
 
     recent_sessions = list(
-        DebugSession.objects.for_user(user).select_related("project", "report")[:RECENT_LIMIT]
+        DebugSession.objects.for_user(user).select_related("project", "report", "readiness_report")[
+            :RECENT_LIMIT
+        ]
     )
     recent_reports = list(
         DiagnosisReport.objects.for_user(user).select_related("debug_session__project")[

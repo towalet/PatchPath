@@ -109,12 +109,10 @@ def test_zip_size_cap():
 
 def test_zip_member_over_limit_is_tree_only():
     raw = make_zip([("big.txt", b"x" * 1000), ("small.txt", b"hi")])
-    entries = _safe_extract(
-        raw, max_total_bytes=10_000_000, max_entries=1000, max_member_bytes=100
-    )
+    entries = _safe_extract(raw, max_total_bytes=10_000_000, max_entries=1000, max_member_bytes=100)
     big = next(e for e in entries if e.relpath == "big.txt")
     small = next(e for e in entries if e.relpath == "small.txt")
-    assert big.data == b""     # tree-only
+    assert big.data == b""  # tree-only
     assert small.data == b"hi"
 
 

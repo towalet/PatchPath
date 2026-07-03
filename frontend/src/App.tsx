@@ -13,6 +13,7 @@ import NewAnalysisPage from "./routes/NewAnalysisPage";
 import ScanPage from "./routes/ScanPage";
 import ReadinessImportPage from "./routes/ReadinessImportPage";
 import ReadinessReportPage from "./routes/ReadinessReportPage";
+import SessionDetailPage from "./routes/SessionDetailPage";
 import SessionHistoryPage from "./routes/SessionHistoryPage";
 import ReportPage from "./routes/ReportPage";
 
@@ -39,6 +40,7 @@ export default function App() {
           <Route path="/projects/:projectId/new" element={<NewAnalysisPage />} />
           <Route path="/projects/:projectId/readiness" element={<ReadinessImportPage />} />
           <Route path="/readiness-reports/:reportId" element={<ReadinessReportPage />} />
+          <Route path="/sessions/:sessionId" element={<SessionDetailPage />} />
           <Route path="/history" element={<SessionHistoryPage />} />
           <Route path="/reports/:reportId" element={<ReportPage />} />
         </Route>

@@ -14,6 +14,7 @@ from __future__ import annotations
 import json
 
 import pytest
+from pydantic import ValidationError
 
 from apps.diagnostics.services import readiness_ai
 from apps.diagnostics.services.ai_client import AIClientError, AIResult
@@ -34,7 +35,12 @@ def _rich_payload(**overrides) -> dict:
         "summary": "The project is close to deployable but has gaps.",
         "confidence_note": "",
         "action_plan": [
-            {"order": 1, "title": "Pin deps", "detail": "Add versions", "related_files": ["requirements.txt"]},
+            {
+                "order": 1,
+                "title": "Pin deps",
+                "detail": "Add versions",
+                "related_files": ["requirements.txt"],
+            },
         ],
         "patch_suggestions": [
             {
@@ -49,7 +55,12 @@ def _rich_payload(**overrides) -> dict:
             }
         ],
         "ai_insights": [
-            {"title": "DEBUG likely on", "detail": "Check settings", "file": None, "severity": "high"},
+            {
+                "title": "DEBUG likely on",
+                "detail": "Check settings",
+                "file": None,
+                "severity": "high",
+            },
         ],
     }
     payload.update(overrides)
@@ -177,7 +188,7 @@ def test_schema_accepts_rich_payload():
 
 
 def test_schema_rejects_empty_summary():
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         ReadinessAIOutput.model_validate({"summary": "   "})
 
 
@@ -235,7 +246,10 @@ def test_cap_limits_counts_and_snippet_length():
     out = ReadinessAIOutput.model_validate(_rich_payload(patch_suggestions=many))
     capped = readiness_ai._validate_and_cap(out, ps)
     assert len(capped["patch_suggestions"]) <= readiness_ai.MAX_PATCH_SUGGESTIONS
-    assert len(capped["patch_suggestions"][0]["proposed_change"]) <= readiness_ai.MAX_SNIPPET_CHARS + 20
+    assert (
+        len(capped["patch_suggestions"][0]["proposed_change"])
+        <= readiness_ai.MAX_SNIPPET_CHARS + 20
+    )
 
 
 def test_cap_nulls_bogus_insight_file_but_keeps_insight():
@@ -276,7 +290,9 @@ class _FailOnceClient:
         self.calls += 1
         if self.calls == 1:
             raise AIClientError("transient")
-        return AIResult(text=json.dumps(_rich_payload()), model="m", prompt_tokens=1, completion_tokens=1)
+        return AIResult(
+            text=json.dumps(_rich_payload()), model="m", prompt_tokens=1, completion_tokens=1
+        )
 
 
 class _AlwaysBadJsonClient:

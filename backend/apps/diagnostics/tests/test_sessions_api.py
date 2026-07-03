@@ -162,6 +162,7 @@ class TestSessions:
         assert resp.data["status"] == SessionStatus.PENDING
         assert resp.data["project_id"] == str(project.id)
         assert resp.data["report_id"] is None
+        assert resp.data["readiness_report_id"] is None
 
     def test_cannot_create_session_under_foreign_project(self, auth_client, other_user):
         project = ProjectFactory(user=other_user)
@@ -182,6 +183,22 @@ class TestSessions:
         assert resp.status_code == status.HTTP_200_OK
         assert resp.data["count"] == 2
 
+    def test_list_sessions_includes_report_targets(self, auth_client, user):
+        project = ProjectFactory(user=user)
+        diagnosis_session = DebugSessionFactory(project=project)
+        diagnosis_report = DiagnosisReportFactory(debug_session=diagnosis_session)
+        readiness_session = ReadinessSessionFactory(project=project)
+        readiness_report = ReadinessReportFactory(debug_session=readiness_session)
+
+        resp = auth_client.get(project_sessions_url(project.id))
+
+        assert resp.status_code == status.HTTP_200_OK
+        rows = {row["id"]: row for row in resp.data["results"]}
+        assert rows[str(diagnosis_session.id)]["report_id"] == str(diagnosis_report.id)
+        assert rows[str(diagnosis_session.id)]["readiness_report_id"] is None
+        assert rows[str(readiness_session.id)]["report_id"] is None
+        assert rows[str(readiness_session.id)]["readiness_report_id"] == str(readiness_report.id)
+
     def test_detail_includes_files_issues_and_report(self, auth_client, user):
         session = DebugSessionFactory(project__user=user)
         UploadedFileFactory(debug_session=session)
@@ -199,6 +216,17 @@ class TestSessions:
         session = DebugSessionFactory(project__user=user)
         resp = auth_client.get(session_detail_url(session.id))
         assert resp.data["report"] is None
+        assert resp.data["readiness_report_id"] is None
+
+    def test_readiness_detail_includes_readiness_report_id(self, auth_client, user):
+        session = ReadinessSessionFactory(project__user=user)
+        report = ReadinessReportFactory(debug_session=session)
+
+        resp = auth_client.get(session_detail_url(session.id))
+
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["report"] is None
+        assert resp.data["readiness_report_id"] == str(report.id)
 
     def test_foreign_session_returns_404(self, auth_client, other_user):
         session = DebugSessionFactory(project__user=other_user)

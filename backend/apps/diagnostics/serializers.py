@@ -176,6 +176,7 @@ class DebugSessionSummarySerializer(serializers.ModelSerializer):
     project_id = serializers.UUIDField(source="project.id", read_only=True)
     project_name = serializers.CharField(source="project.name", read_only=True)
     report_id = serializers.SerializerMethodField()
+    readiness_report_id = serializers.SerializerMethodField()
 
     class Meta:
         model = DebugSession
@@ -186,6 +187,7 @@ class DebugSessionSummarySerializer(serializers.ModelSerializer):
             "status",
             "error_summary",
             "report_id",
+            "readiness_report_id",
             "created_at",
             "updated_at",
         ]
@@ -193,7 +195,13 @@ class DebugSessionSummarySerializer(serializers.ModelSerializer):
 
     def get_report_id(self, obj):
         try:
-            return obj.report.id
+            return str(obj.report.id)
+        except ObjectDoesNotExist:
+            return None
+
+    def get_readiness_report_id(self, obj):
+        try:
+            return str(obj.readiness_report.id)
         except ObjectDoesNotExist:
             return None
 
@@ -206,6 +214,7 @@ class DebugSessionDetailSerializer(serializers.ModelSerializer):
     files = UploadedFileSerializer(many=True, read_only=True)
     detected_issues = DetectedIssueSerializer(many=True, read_only=True)
     report = serializers.SerializerMethodField()
+    readiness_report_id = serializers.SerializerMethodField()
 
     class Meta:
         model = DebugSession
@@ -224,12 +233,19 @@ class DebugSessionDetailSerializer(serializers.ModelSerializer):
             "files",
             "detected_issues",
             "report",
+            "readiness_report_id",
         ]
         read_only_fields = fields
 
     def get_report(self, obj):
         try:
             return DiagnosisReportSummarySerializer(obj.report).data
+        except ObjectDoesNotExist:
+            return None
+
+    def get_readiness_report_id(self, obj):
+        try:
+            return str(obj.readiness_report.id)
         except ObjectDoesNotExist:
             return None
 
@@ -243,7 +259,7 @@ class ProjectDetailSerializer(ProjectSerializer):
         fields = ProjectSerializer.Meta.fields + ["recent_sessions"]
 
     def get_recent_sessions(self, obj):
-        sessions = obj.sessions.select_related("project", "report")[:10]
+        sessions = obj.sessions.select_related("project", "report", "readiness_report")[:10]
         return DebugSessionSummarySerializer(sessions, many=True).data
 
 

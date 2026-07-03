@@ -32,7 +32,12 @@ class RichAIClient:
             "summary": "Nearly deployable.",
             "confidence_note": "Some files were truncated.",
             "action_plan": [
-                {"order": 1, "title": "Add Procfile", "detail": "For the platform", "related_files": []},
+                {
+                    "order": 1,
+                    "title": "Add Procfile",
+                    "detail": "For the platform",
+                    "related_files": [],
+                },
             ],
             "patch_suggestions": [
                 {
@@ -47,12 +52,19 @@ class RichAIClient:
                 }
             ],
             "ai_insights": [
-                {"title": "DEBUG may be on", "detail": "Verify settings", "file": None, "severity": "medium"},
+                {
+                    "title": "DEBUG may be on",
+                    "detail": "Verify settings",
+                    "file": None,
+                    "severity": "medium",
+                },
             ],
         }
         import json
 
-        return AIResult(text=json.dumps(payload), model="test-model", prompt_tokens=20, completion_tokens=15)
+        return AIResult(
+            text=json.dumps(payload), model="test-model", prompt_tokens=20, completion_tokens=15
+        )
 
 
 class FailingAIClient:

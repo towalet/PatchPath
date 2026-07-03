@@ -93,7 +93,7 @@ class ProjectSessionListCreateView(generics.ListCreateAPIView):
         return self._project
 
     def get_queryset(self):
-        return self.get_project().sessions.select_related("project", "report")
+        return self.get_project().sessions.select_related("project", "report", "readiness_report")
 
     def create(self, request: Request, *args, **kwargs) -> Response:
         write = self.get_serializer(data=request.data)
@@ -213,7 +213,7 @@ class SessionDetailView(generics.RetrieveAPIView):
     def get_queryset(self):
         return (
             DebugSession.objects.for_user(self.request.user)
-            .select_related("project", "report")
+            .select_related("project", "report", "readiness_report")
             .prefetch_related("files", "detected_issues")
         )
 
@@ -293,9 +293,7 @@ class ProjectImportCreateView(APIView):
                 original_url = ""
 
             else:  # folder
-                uploads = [
-                    (f.name, f.read()) for f in request.FILES.getlist("files")
-                ]
+                uploads = [(f.name, f.read()) for f in request.FILES.getlist("files")]
                 if not uploads:
                     return Response(
                         {"detail": "No files received for folder import."},

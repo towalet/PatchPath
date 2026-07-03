@@ -175,7 +175,11 @@ def build_context(
             ctx.paths_only.append(pf.relpath)
             continue
 
-        cap = min(per_file_budget, _README_CAP) if name.lower().startswith("readme") else per_file_budget
+        cap = (
+            min(per_file_budget, _README_CAP)
+            if name.lower().startswith("readme")
+            else per_file_budget
+        )
         remaining = total_budget - ctx.total_chars
         if remaining <= 0:
             ctx.paths_only.append(pf.relpath)
@@ -198,7 +202,5 @@ def render_context(ctx: CodeContext) -> str:
         parts.append("=== END FILE ===")
         parts.append("")
     if ctx.paths_only:
-        parts.append(
-            "Files present but not shown (paths only): " + ", ".join(ctx.paths_only)
-        )
+        parts.append("Files present but not shown (paths only): " + ", ".join(ctx.paths_only))
     return "\n".join(parts).strip()

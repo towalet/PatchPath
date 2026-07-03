@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 class Check:
     id: str
     category: str  # "blocking" | "warning" | "improvement"
-    points: int     # score deducted when the check fails
+    points: int  # score deducted when the check fails
     description: str
     recommendation: str
     # If non-empty, check only applies to these detected stacks.
@@ -116,9 +116,7 @@ CHECKS: tuple[Check, ...] = (
         category="improvement",
         points=10,
         description="No CI/CD workflow found in .github/workflows/.",
-        recommendation=(
-            "Add a GitHub Actions workflow for automated testing and deployment."
-        ),
+        recommendation=("Add a GitHub Actions workflow for automated testing and deployment."),
     ),
     # --- Docker checks ---
     Check(
@@ -137,9 +135,7 @@ CHECKS: tuple[Check, ...] = (
         category="warning",
         points=10,
         description="Dockerfile does not set a non-root USER.",
-        recommendation=(
-            "Add USER <non-root> to your Dockerfile for improved security."
-        ),
+        recommendation=("Add USER <non-root> to your Dockerfile for improved security."),
         applies_to_stacks=("Docker",),
     ),
     Check(
@@ -147,9 +143,7 @@ CHECKS: tuple[Check, ...] = (
         category="improvement",
         points=5,
         description="docker-compose.yml has multiple services but no depends_on.",
-        recommendation=(
-            "Add depends_on to control service startup order."
-        ),
+        recommendation=("Add depends_on to control service startup order."),
         applies_to_stacks=("Docker",),
     ),
     # --- Node/React/Next checks ---
@@ -177,9 +171,7 @@ CHECKS: tuple[Check, ...] = (
         category="improvement",
         points=5,
         description='package.json does not specify an "engines" field.',
-        recommendation=(
-            'Add an "engines" field to package.json to pin the Node.js version.'
-        ),
+        recommendation=('Add an "engines" field to package.json to pin the Node.js version.'),
         applies_to_stacks=("Node/Express", "Next.js", "React/Vite"),
     ),
     # --- Python checks ---
@@ -232,9 +224,7 @@ CHECKS: tuple[Check, ...] = (
         category="blocking",
         points=15,
         description="Django SECRET_KEY appears to be hardcoded, not read from an environment variable.",
-        recommendation=(
-            "Read SECRET_KEY from os.environ or a .env file in production settings."
-        ),
+        recommendation=("Read SECRET_KEY from os.environ or a .env file in production settings."),
         applies_to_stacks=("Django",),
     ),
 )

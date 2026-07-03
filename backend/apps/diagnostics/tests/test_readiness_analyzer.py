@@ -35,7 +35,9 @@ def test_detect_next():
 
 
 def test_detect_react_vite():
-    ps = _ps(["vite.config.ts", "package.json"], {"package.json": '{"devDependencies":{"vite":"5"}}'})
+    ps = _ps(
+        ["vite.config.ts", "package.json"], {"package.json": '{"devDependencies":{"vite":"5"}}'}
+    )
     stacks = detect_stack(ps)
     assert "React/Vite" in stacks
 
@@ -95,8 +97,13 @@ def test_target_docker():
 def test_good_django_project_scores_high():
     ps = _ps(
         [
-            "manage.py", "requirements.txt", "Dockerfile", ".env.example",
-            "README.md", ".github/workflows/ci.yml", "wsgi.py",
+            "manage.py",
+            "requirements.txt",
+            "Dockerfile",
+            ".env.example",
+            "README.md",
+            ".github/workflows/ci.yml",
+            "wsgi.py",
         ],
         {
             "requirements.txt": "django\ngunicorn",

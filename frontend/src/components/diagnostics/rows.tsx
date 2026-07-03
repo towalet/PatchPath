@@ -6,11 +6,13 @@ import { ConfidenceBadge } from "./ConfidenceBadge";
 import { SeverityBadge } from "./SeverityBadge";
 import { StatusBadge } from "./StatusBadge";
 
-/** A debug-session row linking to its report (or project when none exists). */
+/** A debug-session row linking to the best available destination. */
 export function SessionRow({ session }: { session: DebugSessionSummary }) {
   const to = session.report_id
     ? `/reports/${session.report_id}`
-    : `/projects/${session.project_id}`;
+    : session.readiness_report_id
+      ? `/readiness-reports/${session.readiness_report_id}`
+      : `/sessions/${session.id}`;
   return (
     <Link to={to} className="row">
       <div className="row__main">

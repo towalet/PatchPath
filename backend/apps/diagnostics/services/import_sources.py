@@ -54,8 +54,7 @@ def _parse_github_url(url: str) -> tuple[str, str]:
     m = _GITHUB_RE.match(url.strip())
     if not m:
         raise ImportError(
-            "Not a valid GitHub repository URL. "
-            "Expected: https://github.com/{owner}/{repo}"
+            "Not a valid GitHub repository URL. " "Expected: https://github.com/{owner}/{repo}"
         )
     return m.group("owner"), m.group("repo")
 
@@ -97,19 +96,15 @@ def _safe_extract(
             name = info.filename.replace("\\", "/")
             norm = posixpath.normpath(name)
             if norm == ".." or norm.startswith("../") or posixpath.isabs(norm):
-                raise ImportError(
-                    f"ZIP archive contains unsafe path: {info.filename!r}"
-                )
+                raise ImportError(f"ZIP archive contains unsafe path: {info.filename!r}")
             # Reject Windows drive letters (e.g. "C:/foo").
             first_seg = norm.split("/")[0]
             if ":" in first_seg:
-                raise ImportError(
-                    f"ZIP archive contains unsafe path: {info.filename!r}"
-                )
+                raise ImportError(f"ZIP archive contains unsafe path: {info.filename!r}")
 
             # Strip the top-level prefix (e.g. codeload adds "repo-branch/").
             if strip_prefix and norm.startswith(strip_prefix + "/"):
-                norm = norm[len(strip_prefix) + 1:]
+                norm = norm[len(strip_prefix) + 1 :]
             if not norm:
                 continue
 
@@ -196,13 +191,10 @@ def from_folder(
         total_bytes += len(data)
         if total_bytes > max_total_bytes:
             raise ImportError(
-                f"Folder upload exceeds the "
-                f"{max_total_bytes // (1024 * 1024)} MB limit."
+                f"Folder upload exceeds the " f"{max_total_bytes // (1024 * 1024)} MB limit."
             )
         if len(entries) >= max_entries:
-            raise ImportError(
-                f"Folder has more than {max_entries} files — refusing to import."
-            )
+            raise ImportError(f"Folder has more than {max_entries} files — refusing to import.")
 
         trimmed = data if len(data) <= max_member_bytes else b""
         entries.append(RawEntry(relpath=norm, data=trimmed))
@@ -228,9 +220,7 @@ def from_github(
 
     branch = _resolve_default_branch(owner, repo, timeout=timeout)
 
-    zipball_url = (
-        f"https://codeload.github.com/{owner}/{repo}/zip/refs/heads/{branch}"
-    )
+    zipball_url = f"https://codeload.github.com/{owner}/{repo}/zip/refs/heads/{branch}"
     raw = _download_bytes(zipball_url, max_bytes=max_total_bytes, timeout=timeout)
 
     # GitHub adds a top-level "owner-repo-{sha}/" prefix — stripped inside _safe_extract_github.
@@ -249,10 +239,7 @@ def from_github(
 def _resolve_default_branch(owner: str, repo: str, *, timeout: int) -> str:
     """Try main, then master. Falls back to the GitHub API."""
     for candidate in ("main", "master"):
-        probe = (
-            f"https://codeload.github.com/{owner}/{repo}"
-            f"/zip/refs/heads/{candidate}"
-        )
+        probe = f"https://codeload.github.com/{owner}/{repo}" f"/zip/refs/heads/{candidate}"
         try:
             req = urllib.request.Request(probe, method="HEAD")
             with urllib.request.urlopen(req, timeout=timeout) as resp:
@@ -264,17 +251,15 @@ def _resolve_default_branch(owner: str, repo: str, *, timeout: int) -> str:
     # Fall back to the API (unauthenticated, rate-limited but fine for MVP).
     api_url = f"https://api.github.com/repos/{owner}/{repo}"
     try:
-        req = urllib.request.Request(
-            api_url, headers={"Accept": "application/vnd.github+json"}
-        )
+        req = urllib.request.Request(api_url, headers={"Accept": "application/vnd.github+json"})
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             import json
+
             data = json.loads(resp.read())
             return data.get("default_branch", "main")
     except Exception as exc:
         raise ImportError(
-            f"Could not resolve the default branch for {owner}/{repo}. "
-            "Is the repository public?"
+            f"Could not resolve the default branch for {owner}/{repo}. " "Is the repository public?"
         ) from exc
 
 
@@ -299,9 +284,7 @@ def _download_bytes(url: str, *, max_bytes: int, timeout: int) -> bytes:
             return buf.getvalue()
     except urllib.error.HTTPError as exc:
         if exc.code == 404:
-            raise ImportError(
-                "Repository not found. Make sure it exists and is public."
-            ) from exc
+            raise ImportError("Repository not found. Make sure it exists and is public.") from exc
         raise ImportError(f"GitHub returned HTTP {exc.code}.") from exc
     except urllib.error.URLError as exc:
         raise ImportError(f"Network error fetching repository: {exc.reason}") from exc

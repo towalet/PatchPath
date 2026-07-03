@@ -6,6 +6,7 @@
 
 export type Severity = "low" | "medium" | "high";
 export type SessionStatus = "pending" | "analyzing" | "completed" | "failed";
+export type SessionKind = "diagnosis" | "readiness";
 
 export interface Project {
   id: string;
@@ -85,6 +86,7 @@ export interface DebugSessionSummary {
   status: SessionStatus;
   error_summary: string;
   report_id: string | null;
+  readiness_report_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -94,6 +96,7 @@ export interface DebugSession {
   id: string;
   project_id: string;
   project_name: string;
+  kind: SessionKind;
   status: SessionStatus;
   error_summary: string;
   failure_reason: string;
@@ -104,6 +107,7 @@ export interface DebugSession {
   files: UploadedFileMeta[];
   detected_issues: DetectedIssue[];
   report: DiagnosisReportSummary | null;
+  readiness_report_id: string | null;
 }
 
 export interface DashboardSummary {

@@ -225,9 +225,7 @@ def _validate_and_cap(output: ReadinessAIOutput, ps: ProjectSource) -> dict:
     # Action plan: cap count, drop unknown related files (keep the step).
     plan: list[dict] = []
     for step in sorted(output.action_plan, key=lambda s: s.order):
-        related = [
-            f for f in step.related_files if any(f.lower() in p.lower() for p in tree)
-        ]
+        related = [f for f in step.related_files if any(f.lower() in p.lower() for p in tree)]
         plan.append(
             {
                 "order": step.order,
@@ -278,17 +276,13 @@ def summarize(
             raw = json.loads(result.text)
             output = ReadinessAIOutput.model_validate(raw)
         except AIClientError as exc:
-            logger.warning(
-                "Readiness AI attempt %s/%s failed: %s", attempt, attempts, exc
-            )
+            logger.warning("Readiness AI attempt %s/%s failed: %s", attempt, attempts, exc)
             retry_note = "The previous attempt failed to return a response."
             if attempt < attempts and backoff:
                 time.sleep(backoff * attempt)
             continue
         except Exception as exc:  # noqa: BLE001 — JSON/validation errors: retry
-            logger.warning(
-                "Readiness AI attempt %s/%s rejected: %s", attempt, attempts, exc
-            )
+            logger.warning("Readiness AI attempt %s/%s rejected: %s", attempt, attempts, exc)
             retry_note = str(exc)
             continue
 

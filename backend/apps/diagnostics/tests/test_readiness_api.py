@@ -70,9 +70,13 @@ class RichAIClient:
                     "effort": "low",
                 }
             ],
-            "ai_insights": [{"title": "DEBUG?", "detail": "check", "file": None, "severity": "high"}],
+            "ai_insights": [
+                {"title": "DEBUG?", "detail": "check", "file": None, "severity": "high"}
+            ],
         }
-        return AIResult(text=json.dumps(payload), model="test", prompt_tokens=2, completion_tokens=2)
+        return AIResult(
+            text=json.dumps(payload), model="test", prompt_tokens=2, completion_tokens=2
+        )
 
 
 IMPORT_URL = "api:diagnostics:readiness-import"
