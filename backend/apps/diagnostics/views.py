@@ -64,8 +64,8 @@ class ProjectListCreateView(generics.ListCreateAPIView):
         serializer.save(user=self.request.user)
 
 
-class ProjectDetailView(generics.RetrieveAPIView):
-    """A single owned project with its recent sessions."""
+class ProjectDetailView(generics.RetrieveDestroyAPIView):
+    """A single owned project with its recent sessions, or permanent deletion."""
 
     serializer_class = ProjectDetailSerializer
     permission_classes = [IsAuthenticated, IsOwner]

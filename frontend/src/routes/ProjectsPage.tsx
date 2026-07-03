@@ -6,7 +6,7 @@ import { Card } from "../components/ui/Card";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { Input } from "../components/ui/Input";
-import { createProject, listProjects } from "../api/projects";
+import { createProject, deleteProject, listProjects } from "../api/projects";
 import { useFetch } from "../hooks/useFetch";
 import type { ApiError } from "../types/api";
 import { formatDate } from "../utils/format";
@@ -22,6 +22,9 @@ export default function ProjectsPage() {
   const [provider, setProvider] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<ApiError | null>(null);
+  const [confirmingDeleteId, setConfirmingDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<ApiError | null>(null);
 
   const fieldError = (f: string) => formError?.fieldErrors?.[f]?.[0];
 
@@ -40,6 +43,25 @@ export default function ProjectsPage() {
       setFormError(err as ApiError);
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleRequestDelete = (projectId: string) => {
+    setDeleteError(null);
+    setConfirmingDeleteId(projectId);
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    setDeletingId(projectId);
+    setDeleteError(null);
+    try {
+      await deleteProject(projectId);
+      setConfirmingDeleteId(null);
+      refetch();
+    } catch (err) {
+      setDeleteError(err as ApiError);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -119,6 +141,13 @@ export default function ProjectsPage() {
         />
       ) : null}
 
+      {deleteError ? (
+        <p className="form__error" role="alert" style={{ marginBottom: "var(--space-5)" }}>
+          <span className="glyph glyph--on glyph--sm" aria-hidden="true" />
+          {deleteError.message}
+        </p>
+      ) : null}
+
       {projects && projects.length === 0 && !open ? (
         <EmptyState
           title="No projects yet"
@@ -134,32 +163,70 @@ export default function ProjectsPage() {
       {projects && projects.length > 0 ? (
         <div className="grid grid--cards">
           {projects.map((p) => (
-            <Link key={p.id} to={`/projects/${p.id}`} className="record">
-              <div className="record__head">
-                <h2 className="record__title">{p.name}</h2>
-                <span className="glyph glyph--muted" aria-hidden="true" />
-              </div>
-              <div className="record__meta">
-                {p.stack ? (
+            <article key={p.id} className="project-card">
+              <Link to={`/projects/${p.id}`} className="record project-card__link">
+                <div className="record__head">
+                  <h2 className="record__title">{p.name}</h2>
+                  <span className="glyph glyph--muted" aria-hidden="true" />
+                </div>
+                <div className="record__meta">
+                  {p.stack ? (
+                    <span>
+                      <span className="glyph glyph--dim glyph--sm" />
+                      {p.stack}
+                    </span>
+                  ) : null}
+                  {p.cloud_provider ? (
+                    <span>
+                      <span className="glyph glyph--outline glyph--sm" />
+                      {p.cloud_provider}
+                    </span>
+                  ) : null}
+                </div>
+                <div className="record__meta">
                   <span>
-                    <span className="glyph glyph--dim glyph--sm" />
-                    {p.stack}
+                    {p.session_count} session{p.session_count === 1 ? "" : "s"}
                   </span>
-                ) : null}
-                {p.cloud_provider ? (
-                  <span>
-                    <span className="glyph glyph--outline glyph--sm" />
-                    {p.cloud_provider}
-                  </span>
-                ) : null}
+                  <span>last {formatDate(p.latest_session_at)}</span>
+                </div>
+              </Link>
+              <div className="project-card__actions">
+                {confirmingDeleteId === p.id ? (
+                  <div className="delete-confirm" role="alert">
+                    <p>
+                      Delete <strong>{p.name}</strong> and every scan, report, session, and upload?
+                    </p>
+                    <div className="delete-confirm__actions">
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        loading={deletingId === p.id}
+                        onClick={() => handleDeleteProject(p.id)}
+                      >
+                        Delete forever
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={deletingId === p.id}
+                        onClick={() => setConfirmingDeleteId(null)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    disabled={!!deletingId}
+                    onClick={() => handleRequestDelete(p.id)}
+                  >
+                    Delete
+                  </Button>
+                )}
               </div>
-              <div className="record__meta">
-                <span>
-                  {p.session_count} session{p.session_count === 1 ? "" : "s"}
-                </span>
-                <span>last {formatDate(p.latest_session_at)}</span>
-              </div>
-            </Link>
+            </article>
           ))}
         </div>
       ) : null}

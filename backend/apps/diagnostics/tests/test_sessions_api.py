@@ -12,13 +12,26 @@ import pytest
 from django.urls import reverse
 from rest_framework import status
 
-from apps.diagnostics.models import DebugSession, Project, SessionStatus, Severity
+from apps.diagnostics.models import (
+    DebugSession,
+    DetectedIssue,
+    DiagnosisReport,
+    Project,
+    ProjectImport,
+    ReadinessReport,
+    SessionStatus,
+    Severity,
+    UploadedFile,
+)
 
 from .factories import (
     DebugSessionFactory,
     DetectedIssueFactory,
     DiagnosisReportFactory,
     ProjectFactory,
+    ProjectImportFactory,
+    ReadinessReportFactory,
+    ReadinessSessionFactory,
     UploadedFileFactory,
 )
 
@@ -102,6 +115,36 @@ class TestProjects:
         assert (
             auth_client.get(project_detail_url(project.id)).status_code == status.HTTP_404_NOT_FOUND
         )
+
+    def test_delete_project_cascades_related_data(self, auth_client, user):
+        project = ProjectFactory(user=user)
+        diagnosis_session = DebugSessionFactory(project=project)
+        UploadedFileFactory(debug_session=diagnosis_session)
+        DetectedIssueFactory(debug_session=diagnosis_session)
+        DiagnosisReportFactory(debug_session=diagnosis_session)
+
+        readiness_session = ReadinessSessionFactory(project=project)
+        ProjectImportFactory(debug_session=readiness_session)
+        ReadinessReportFactory(debug_session=readiness_session)
+
+        resp = auth_client.delete(project_detail_url(project.id))
+
+        assert resp.status_code == status.HTTP_204_NO_CONTENT
+        assert not Project.objects.filter(pk=project.id).exists()
+        assert not DebugSession.objects.filter(project=project).exists()
+        assert not UploadedFile.objects.filter(debug_session__project=project).exists()
+        assert not DetectedIssue.objects.filter(debug_session__project=project).exists()
+        assert not DiagnosisReport.objects.filter(debug_session__project=project).exists()
+        assert not ProjectImport.objects.filter(debug_session__project=project).exists()
+        assert not ReadinessReport.objects.filter(debug_session__project=project).exists()
+
+    def test_delete_foreign_project_returns_404(self, auth_client, other_user):
+        project = ProjectFactory(user=other_user)
+
+        resp = auth_client.delete(project_detail_url(project.id))
+
+        assert resp.status_code == status.HTTP_404_NOT_FOUND
+        assert Project.objects.filter(pk=project.id).exists()
 
 
 # Sessions -----------------------------------------------------------------

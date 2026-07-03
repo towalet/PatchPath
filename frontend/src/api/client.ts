@@ -117,10 +117,21 @@ async function toApiError(response: Response): Promise<ApiError> {
     const data = await response.json();
     if (typeof data?.detail === "string") {
       message = data.detail;
+    } else if (typeof data?.failure_reason === "string" && data.failure_reason.trim()) {
+      message = data.failure_reason;
+    } else if (typeof data?.message === "string" && data.message.trim()) {
+      message = data.message;
+    } else if (typeof data?.error === "string" && data.error.trim()) {
+      message = data.error;
+    } else if (
+      Array.isArray(data?.non_field_errors) &&
+      typeof data.non_field_errors[0] === "string"
+    ) {
+      message = data.non_field_errors[0];
     } else if (data && typeof data === "object") {
       fieldErrors = data;
       // Surface the first field error as the headline message.
-      const first = Object.values(data)[0];
+      const first = Object.entries(data).find(([key]) => key !== "session_id" && key !== "id")?.[1];
       if (Array.isArray(first) && typeof first[0] === "string") message = first[0];
       else if (typeof first === "string") message = first;
     }

@@ -30,7 +30,7 @@ function computeSteps(phase: ScanPhase, sourceLabel: string): Step[] {
     "generating_report",
     "done",
   ];
-  const activeIdx = order.indexOf(phase);
+  const activeIdx = phase === "failed" ? order.indexOf("generating_report") : order.indexOf(phase);
 
   const labels: { title: string; desc: (done: boolean, active: boolean) => string }[] = [
     {

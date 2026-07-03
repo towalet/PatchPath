@@ -1,6 +1,6 @@
 /**
  * Projects API calls.
- * Endpoints: GET/POST /projects/, GET /projects/{id}/
+ * Endpoints: GET/POST /projects/, GET/DELETE /projects/{id}/
  */
 import type { Paginated } from "../types/api";
 import type { Project, ProjectDetail } from "../types/diagnostics";
@@ -21,4 +21,8 @@ export function createProject(input: {
   cloud_provider?: string;
 }): Promise<Project> {
   return apiRequest<Project>("/projects/", { method: "POST", body: input });
+}
+
+export function deleteProject(projectId: string): Promise<void> {
+  return apiRequest<void>(`/projects/${projectId}/`, { method: "DELETE" });
 }

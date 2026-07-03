@@ -11,7 +11,7 @@ export function Sidebar() {
   return (
     <nav className="sidebar" aria-label="Primary">
       <span className="sidebar__section">// READINESS</span>
-      <NavLink to="/projects" className="sidebar__link" end={false}>
+      <NavLink to="/scan" className="sidebar__link" end>
         <span className="glyph glyph--on" aria-hidden="true" />
         Scan a project
       </NavLink>

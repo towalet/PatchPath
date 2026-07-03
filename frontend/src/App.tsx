@@ -10,6 +10,7 @@ import DashboardPage from "./routes/DashboardPage";
 import ProjectsPage from "./routes/ProjectsPage";
 import ProjectDetailPage from "./routes/ProjectDetailPage";
 import NewAnalysisPage from "./routes/NewAnalysisPage";
+import ScanPage from "./routes/ScanPage";
 import ReadinessImportPage from "./routes/ReadinessImportPage";
 import ReadinessReportPage from "./routes/ReadinessReportPage";
 import SessionHistoryPage from "./routes/SessionHistoryPage";
@@ -32,6 +33,7 @@ export default function App() {
         {/* Authenticated product */}
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/scan" element={<ScanPage />} />
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
           <Route path="/projects/:projectId/new" element={<NewAnalysisPage />} />

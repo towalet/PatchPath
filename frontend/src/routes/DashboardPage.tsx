@@ -87,7 +87,7 @@ export default function DashboardPage() {
             <p className="page-head__sub">{user?.name ? `Signed in as ${user.name}` : user?.email}</p>
           </div>
           <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-            <Link to="/projects" data-variant="primary" data-size="md">
+            <Link to="/scan" data-variant="primary" data-size="md">
               <span className="btn__dot" aria-hidden="true" />
               Scan a project
             </Link>
@@ -150,9 +150,9 @@ export default function DashboardPage() {
                   title="No projects yet"
                   description="Create a project, then scan it for deployment readiness via GitHub, ZIP, or folder upload."
                   action={
-                    <Link to="/projects" data-variant="primary" data-size="md">
+                    <Link to="/scan" data-variant="primary" data-size="md">
                       <span className="btn__dot" aria-hidden="true" />
-                      Create your first project
+                      Run your first scan
                     </Link>
                   }
                 />

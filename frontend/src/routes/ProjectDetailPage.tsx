@@ -1,18 +1,38 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useState } from "react";
 
 import { SessionRow } from "../components/diagnostics/rows";
+import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { ErrorState } from "../components/ui/ErrorState";
 import { LoadingState } from "../components/ui/LoadingState";
-import { getProject } from "../api/projects";
+import { deleteProject, getProject } from "../api/projects";
 import { useFetch } from "../hooks/useFetch";
+import type { ApiError } from "../types/api";
 
 export default function ProjectDetailPage() {
   const { projectId } = useParams();
+  const navigate = useNavigate();
   const { data: project, loading, error, refetch } = useFetch(
     () => getProject(projectId!),
     [projectId],
   );
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<ApiError | null>(null);
+
+  const handleDeleteProject = async () => {
+    if (!project) return;
+    setDeleting(true);
+    setDeleteError(null);
+    try {
+      await deleteProject(project.id);
+      navigate("/projects");
+    } catch (err) {
+      setDeleteError(err as ApiError);
+      setDeleting(false);
+    }
+  };
 
   return (
     <div data-route="project-detail">
@@ -48,15 +68,55 @@ export default function ProjectDetailPage() {
               </p>
             </div>
             <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
-              <Link to={`/projects/${project.id}/readiness`} data-variant="primary" data-size="md">
+              <Link to="/scan" data-variant="primary" data-size="md">
                 <span className="btn__dot" aria-hidden="true" />
-                Scan readiness
+                Scan project
               </Link>
               <Link to={`/projects/${project.id}/new`} data-variant="secondary" data-size="md">
                 Diagnose logs
               </Link>
+              <Button variant="danger" onClick={() => setConfirmDelete(true)}>
+                Delete
+              </Button>
             </div>
           </header>
+
+          {deleteError ? (
+            <p className="form__error" role="alert" style={{ marginBottom: "var(--space-5)" }}>
+              <span className="glyph glyph--on glyph--sm" aria-hidden="true" />
+              {deleteError.message}
+            </p>
+          ) : null}
+
+          {confirmDelete ? (
+            <section className="delete-confirm delete-confirm--wide" role="alert">
+              <div>
+                <span className="eyebrow">
+                  <span className="glyph glyph--on glyph--sm" />// DELETE_PROJECT
+                </span>
+                <p>
+                  Delete <strong>{project.name}</strong> permanently? This removes the project,
+                  sessions, uploaded files, detected issues, diagnosis reports, readiness scans,
+                  and readiness reports from the database.
+                </p>
+              </div>
+              <div className="delete-confirm__actions">
+                <Button variant="danger" loading={deleting} onClick={handleDeleteProject}>
+                  Delete forever
+                </Button>
+                <Button
+                  variant="ghost"
+                  disabled={deleting}
+                  onClick={() => {
+                    setConfirmDelete(false);
+                    setDeleteError(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </section>
+          ) : null}
 
           <h2 className="block__title">
             <span className="glyph glyph--muted glyph--sm" />// SESSIONS

@@ -5,6 +5,7 @@ import { Input } from "../ui/Input";
 interface GithubImportFormProps {
   onImport: (repoUrl: string) => void;
   disabled?: boolean;
+  buttonLabel?: string;
 }
 
 function isValidGithubUrl(url: string): boolean {
@@ -16,7 +17,11 @@ function isValidGithubUrl(url: string): boolean {
   }
 }
 
-export function GithubImportForm({ onImport, disabled }: GithubImportFormProps) {
+export function GithubImportForm({
+  onImport,
+  disabled,
+  buttonLabel = "Import repository",
+}: GithubImportFormProps) {
   const [url, setUrl] = useState("");
   const [touched, setTouched] = useState(false);
 
@@ -51,7 +56,7 @@ export function GithubImportForm({ onImport, disabled }: GithubImportFormProps) 
           disabled={disabled || !valid}
           onClick={() => onImport(url.trim())}
         >
-          Import repository
+          {buttonLabel}
         </Button>
       </div>
     </div>
