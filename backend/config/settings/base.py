@@ -204,14 +204,25 @@ PATCHPATH_MAX_FILE_BYTES = env.int("PATCHPATH_MAX_FILE_BYTES", default=1_048_576
 PATCHPATH_MAX_SESSION_BYTES = env.int("PATCHPATH_MAX_SESSION_BYTES", default=5_242_880)  # 5 MB
 PATCHPATH_EVIDENCE_CHAR_BUDGET = env.int("PATCHPATH_EVIDENCE_CHAR_BUDGET", default=12_000)
 
+# Readiness import limits.
+PATCHPATH_MAX_IMPORT_BYTES = env.int("PATCHPATH_MAX_IMPORT_BYTES", default=5_242_880)  # 5 MB
+PATCHPATH_MAX_IMPORT_FILES = env.int("PATCHPATH_MAX_IMPORT_FILES", default=2_000)
+PATCHPATH_IMPORT_FILE_BYTES = env.int("PATCHPATH_IMPORT_FILE_BYTES", default=1_048_576)  # 1 MB
+PATCHPATH_GITHUB_TIMEOUT = env.int("PATCHPATH_GITHUB_TIMEOUT", default=20)
+
 # AI configuration (OpenAI-compatible). Keep keys out of source.
 PATCHPATH_AI = {
     "API_KEY": env.str("OPENAI_API_KEY", default=""),
     "BASE_URL": env.str("OPENAI_BASE_URL", default="https://api.openai.com/v1"),
-    "MODEL": env.str("PATCHPATH_AI_MODEL", default="gpt-4o-mini"),
-    "TIMEOUT_SECONDS": env.int("PATCHPATH_AI_TIMEOUT", default=45),
+    "MODEL": env.str("PATCHPATH_AI_MODEL", default="gpt-4o"),
+    "TIMEOUT_SECONDS": env.int("PATCHPATH_AI_TIMEOUT", default=90),
     "MAX_RETRIES": env.int("PATCHPATH_AI_MAX_RETRIES", default=1),
     "TEMPERATURE": env.float("PATCHPATH_AI_TEMPERATURE", default=0.2),
+    # Readiness code-review context/output budgets.
+    "MAX_OUTPUT_TOKENS": env.int("PATCHPATH_AI_MAX_OUTPUT_TOKENS", default=4096),
+    "CONTEXT_CHAR_BUDGET": env.int("PATCHPATH_AI_CONTEXT_BUDGET", default=48_000),
+    "PER_FILE_CHAR_BUDGET": env.int("PATCHPATH_AI_PER_FILE_BUDGET", default=8_000),
+    "RETRY_BACKOFF_SECONDS": env.float("PATCHPATH_AI_RETRY_BACKOFF", default=0.75),
 }
 
 # Hard ceiling on reported confidence; the product never claims certainty.

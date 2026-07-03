@@ -81,6 +81,19 @@ def classify(filename: str) -> str | None:
     return _EXTENSION_TYPES.get(ext)
 
 
+def looks_binary(raw: bytes) -> bool:
+    """Return True if raw bytes appear to be binary (NUL byte present)."""
+    return b"\x00" in raw
+
+
+def decode_text(raw: bytes, filename: str) -> str:
+    """Decode bytes as UTF-8 or raise FileValidationError."""
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise FileValidationError(f"'{filename}' is not valid UTF-8 text.") from exc
+
+
 def parse_upload(filename: str, raw: bytes, *, max_bytes: int) -> ParsedFile:
     """Validate and decode one upload.
 

@@ -3,9 +3,9 @@ OpenAI-compatible AI client wrapper.
 
 A deliberately thin transport boundary: it sends a system+user prompt and returns
 raw text plus token usage. Prompt construction, JSON parsing, schema validation,
-and guardrails all live in :mod:`report_generator`, so the model call is a single
-seam the test-suite mocks (the suite never reaches the network — see
-``config/settings/test.py``).
+retries, and guardrails all live one layer up in the callers (``report_generator``
+and ``readiness_ai``), so the model call is a single seam the test-suite mocks (the
+suite never reaches the network — see ``config/settings/test.py``).
 """
 
 from __future__ import annotations
@@ -46,7 +46,7 @@ class AIClient:
                 api_key=self._config.get("API_KEY") or "",
                 base_url=self._config.get("BASE_URL") or None,
                 timeout=self._config.get("TIMEOUT_SECONDS", 45),
-                max_retries=0,  # retries are orchestrated in report_generator
+                max_retries=0,  # retries are orchestrated by the callers
             )
         return self._client
 
@@ -54,16 +54,21 @@ class AIClient:
         """Request a single JSON completion. Raises ``AIClientError`` on failure."""
         client = self._ensure_client()
         model = self._config.get("MODEL", "")
+        kwargs: dict = {
+            "model": model,
+            "temperature": self._config.get("TEMPERATURE", 0.2),
+            "response_format": {"type": "json_object"},
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt},
+            ],
+        }
+        # Only set when configured — some OpenAI-compatible backends reject a null.
+        max_output = self._config.get("MAX_OUTPUT_TOKENS")
+        if max_output:
+            kwargs["max_tokens"] = max_output
         try:
-            response = client.chat.completions.create(
-                model=model,
-                temperature=self._config.get("TEMPERATURE", 0.2),
-                response_format={"type": "json_object"},
-                messages=[
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": user_prompt},
-                ],
-            )
+            response = client.chat.completions.create(**kwargs)
         except Exception as exc:  # noqa: BLE001 — normalise any SDK/transport error
             raise AIClientError(str(exc)) from exc
 

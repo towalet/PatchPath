@@ -23,3 +23,5 @@ REST_FRAMEWORK["DEFAULT_THROTTLE_RATES"] = {}  # noqa: F405
 # Never use a real key during tests.
 PATCHPATH_AI["API_KEY"] = "test-key"  # noqa: F405
 PATCHPATH_AI["MODEL"] = "test-model"  # noqa: F405
+# Keep retry-path tests instant.
+PATCHPATH_AI["RETRY_BACKOFF_SECONDS"] = 0  # noqa: F405

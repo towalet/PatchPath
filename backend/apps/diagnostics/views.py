@@ -24,7 +24,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from . import selectors
-from .models import DebugSession, DiagnosisReport, Project
+from .models import DebugSession, DiagnosisReport, Project, ReadinessReport, SessionKind, SourceType
 from .permissions import IsOwner
 from .serializers import (
     DashboardSerializer,
@@ -33,10 +33,15 @@ from .serializers import (
     DebugSessionSummarySerializer,
     DiagnosisReportSerializer,
     ProjectDetailSerializer,
+    ProjectImportRequestSerializer,
+    ProjectImportSerializer,
     ProjectSerializer,
+    ReadinessReportSerializer,
     UploadedFileSerializer,
 )
-from .services import file_intake, report_generator
+from .services import file_intake, import_sources, project_normalizer, report_generator
+from .services import readiness_report as readiness_report_svc
+from .services.import_sources import ImportError as ProjectImportError
 
 
 class DashboardView(APIView):
@@ -222,5 +227,183 @@ class ReportDetailView(generics.RetrieveAPIView):
 
     def get_queryset(self):
         return DiagnosisReport.objects.for_user(self.request.user).select_related(
+            "debug_session__project"
+        )
+
+
+class ProjectImportCreateView(APIView):
+    """Create a readiness import session from a GitHub URL, ZIP, or folder upload.
+
+    POST /api/projects/{project_id}/imports/
+
+    For github:  JSON body { source_type: "github", repo_url: "..." }
+    For zip:     multipart { source_type: "zip", archive: <file> }
+    For folder:  multipart { source_type: "folder", files: <file[]> }
+
+    Returns { session_id, import: {...} } on success; 400 on validation error.
+    """
+
+    permission_classes = [IsAuthenticated, IsOwner]
+    throttle_scope = "upload"
+
+    def post(self, request: Request, **kwargs) -> Response:
+        project = get_object_or_404(
+            Project.objects.for_user(request.user),
+            pk=kwargs["project_id"],
+        )
+        self.check_object_permissions(request, project)
+
+        req_ser = ProjectImportRequestSerializer(data=request.data)
+        req_ser.is_valid(raise_exception=True)
+        source_type = req_ser.validated_data["source_type"]
+
+        from django.conf import settings as dj_settings
+
+        max_bytes = dj_settings.PATCHPATH_MAX_IMPORT_BYTES
+        max_files = dj_settings.PATCHPATH_MAX_IMPORT_FILES
+        max_member = dj_settings.PATCHPATH_IMPORT_FILE_BYTES
+        timeout = dj_settings.PATCHPATH_GITHUB_TIMEOUT
+
+        try:
+            if source_type == SourceType.GITHUB:
+                url = req_ser.validated_data["repo_url"]
+                source_name, normalized_url, entries = import_sources.from_github(
+                    url,
+                    max_total_bytes=max_bytes,
+                    max_entries=max_files,
+                    max_member_bytes=max_member,
+                    timeout=timeout,
+                )
+                original_url = normalized_url
+
+            elif source_type == SourceType.ZIP:
+                archive = request.FILES.get("archive")
+                if not archive:
+                    return Response(
+                        {"detail": "Provide a ZIP file as 'archive'."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                source_name, entries = import_sources.from_zip(
+                    archive.name,
+                    archive.read(),
+                    max_total_bytes=max_bytes,
+                    max_entries=max_files,
+                    max_member_bytes=max_member,
+                )
+                original_url = ""
+
+            else:  # folder
+                uploads = [
+                    (f.name, f.read()) for f in request.FILES.getlist("files")
+                ]
+                if not uploads:
+                    return Response(
+                        {"detail": "No files received for folder import."},
+                        status=status.HTTP_400_BAD_REQUEST,
+                    )
+                source_name, entries = import_sources.from_folder(
+                    uploads,
+                    max_total_bytes=max_bytes,
+                    max_entries=max_files,
+                    max_member_bytes=max_member,
+                )
+                original_url = ""
+
+        except ProjectImportError as exc:
+            return Response({"detail": str(exc)}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Create the readiness DebugSession.
+        session = DebugSession.objects.create(
+            project=project,
+            kind=SessionKind.READINESS,
+        )
+
+        # Normalize into ProjectSource and persist.
+        ps = project_normalizer.normalize(
+            source_type=source_type,
+            source_name=source_name,
+            original_url=original_url,
+            entries=entries,
+        )
+        pi = project_normalizer.persist(session, ps)
+
+        return Response(
+            {
+                "session_id": str(session.id),
+                "import": ProjectImportSerializer(pi).data,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class SessionScanView(APIView):
+    """Run the readiness analyzer for an import session.
+
+    POST /api/sessions/{session_id}/scan/
+
+    Returns { session_id, status, report_id } on success.
+    AI failure is non-fatal — the report still renders with ai_used=False.
+    """
+
+    permission_classes = [IsAuthenticated, IsOwner]
+    throttle_scope = "analyze"
+
+    def get_session(self) -> DebugSession:
+        session = get_object_or_404(
+            DebugSession.objects.for_user(self.request.user).select_related("project"),
+            pk=self.kwargs["session_id"],
+        )
+        self.check_object_permissions(self.request, session)
+        return session
+
+    def post(self, request: Request, **kwargs) -> Response:
+        session = self.get_session()
+
+        if not hasattr(session, "project_import"):
+            return Response(
+                {"detail": "No import found for this session. Run an import first."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        # Refresh in case project_import was just created in the same request.
+        try:
+            _ = session.project_import
+        except Exception:
+            return Response(
+                {"detail": "No import found for this session."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        try:
+            report = readiness_report_svc.run_readiness(session)
+        except Exception:
+            session.refresh_from_db()
+            return Response(
+                {
+                    "session_id": str(session.id),
+                    "status": session.status,
+                    "report_id": None,
+                    "failure_reason": session.failure_reason,
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
+
+        return Response(
+            {
+                "session_id": str(session.id),
+                "status": session.status,
+                "report_id": str(report.id),
+            }
+        )
+
+
+class ReadinessReportDetailView(generics.RetrieveAPIView):
+    """Full readiness report document."""
+
+    serializer_class = ReadinessReportSerializer
+    permission_classes = [IsAuthenticated, IsOwner]
+    lookup_url_kwarg = "report_id"
+
+    def get_queryset(self):
+        return ReadinessReport.objects.for_user(self.request.user).select_related(
             "debug_session__project"
         )

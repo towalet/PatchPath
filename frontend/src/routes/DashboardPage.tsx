@@ -86,9 +86,15 @@ export default function DashboardPage() {
             <h1 className="page-head__title">Diagnostics console</h1>
             <p className="page-head__sub">{user?.name ? `Signed in as ${user.name}` : user?.email}</p>
           </div>
-          <Link to="/projects" data-variant="secondary" data-size="md">
-            Manage projects
-          </Link>
+          <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            <Link to="/projects" data-variant="primary" data-size="md">
+              <span className="btn__dot" aria-hidden="true" />
+              Scan a project
+            </Link>
+            <Link to="/projects" data-variant="secondary" data-size="md">
+              Manage projects
+            </Link>
+          </div>
         </header>
 
         {loading && !dashboard ? <LoadingState label="Loading dashboard..." /> : null}
@@ -142,7 +148,7 @@ export default function DashboardPage() {
               <div className="dashboard-empty">
                 <EmptyState
                   title="No projects yet"
-                  description="Create a project to group deployment failures, then run your first diagnosis."
+                  description="Create a project, then scan it for deployment readiness via GitHub, ZIP, or folder upload."
                   action={
                     <Link to="/projects" data-variant="primary" data-size="md">
                       <span className="btn__dot" aria-hidden="true" />

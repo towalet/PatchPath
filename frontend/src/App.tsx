@@ -10,6 +10,8 @@ import DashboardPage from "./routes/DashboardPage";
 import ProjectsPage from "./routes/ProjectsPage";
 import ProjectDetailPage from "./routes/ProjectDetailPage";
 import NewAnalysisPage from "./routes/NewAnalysisPage";
+import ReadinessImportPage from "./routes/ReadinessImportPage";
+import ReadinessReportPage from "./routes/ReadinessReportPage";
 import SessionHistoryPage from "./routes/SessionHistoryPage";
 import ReportPage from "./routes/ReportPage";
 
@@ -33,6 +35,8 @@ export default function App() {
           <Route path="/projects" element={<ProjectsPage />} />
           <Route path="/projects/:projectId" element={<ProjectDetailPage />} />
           <Route path="/projects/:projectId/new" element={<NewAnalysisPage />} />
+          <Route path="/projects/:projectId/readiness" element={<ReadinessImportPage />} />
+          <Route path="/readiness-reports/:reportId" element={<ReadinessReportPage />} />
           <Route path="/history" element={<SessionHistoryPage />} />
           <Route path="/reports/:reportId" element={<ReportPage />} />
         </Route>

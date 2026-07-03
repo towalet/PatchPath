@@ -7,11 +7,14 @@ from django.urls import path
 from .views import (
     DashboardView,
     ProjectDetailView,
+    ProjectImportCreateView,
     ProjectListCreateView,
     ProjectSessionListCreateView,
+    ReadinessReportDetailView,
     ReportDetailView,
     SessionAnalyzeView,
     SessionDetailView,
+    SessionScanView,
     SessionUploadView,
 )
 
@@ -38,4 +41,19 @@ urlpatterns = [
         name="session-analyze",
     ),
     path("reports/<uuid:report_id>/", ReportDetailView.as_view(), name="report-detail"),
+    path(
+        "projects/<uuid:project_id>/imports/",
+        ProjectImportCreateView.as_view(),
+        name="readiness-import",
+    ),
+    path(
+        "sessions/<uuid:session_id>/scan/",
+        SessionScanView.as_view(),
+        name="readiness-scan",
+    ),
+    path(
+        "readiness-reports/<uuid:report_id>/",
+        ReadinessReportDetailView.as_view(),
+        name="readiness-report-detail",
+    ),
 ]

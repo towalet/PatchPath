@@ -17,6 +17,9 @@ from .models import (
     DetectedIssue,
     DiagnosisReport,
     Project,
+    ProjectImport,
+    ReadinessReport,
+    SourceType,
     UploadedFile,
 )
 
@@ -210,6 +213,7 @@ class DebugSessionDetailSerializer(serializers.ModelSerializer):
             "id",
             "project_id",
             "project_name",
+            "kind",
             "status",
             "error_summary",
             "failure_reason",
@@ -258,3 +262,109 @@ class DashboardSerializer(serializers.Serializer):
     high_severity_count = serializers.IntegerField()
     recent_sessions = DebugSessionSummarySerializer(many=True)
     recent_reports = DiagnosisReportSummarySerializer(many=True)
+
+
+# ---------------------------------------------------------------------------
+# Readiness import + report
+# ---------------------------------------------------------------------------
+
+
+class ProjectImportRequestSerializer(serializers.Serializer):
+    """Write contract for POST /projects/{id}/imports/."""
+
+    source_type = serializers.ChoiceField(choices=SourceType.choices)
+    repo_url = serializers.URLField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        if attrs.get("source_type") == SourceType.GITHUB:
+            url = attrs.get("repo_url", "").strip()
+            if not url:
+                raise serializers.ValidationError(
+                    {"repo_url": "repo_url is required for GitHub import."}
+                )
+            if "github.com" not in url.lower():
+                raise serializers.ValidationError(
+                    {"repo_url": "Only github.com URLs are supported."}
+                )
+        return attrs
+
+
+class ProjectImportSerializer(serializers.ModelSerializer):
+    """Read representation of a ProjectImport."""
+
+    session_id = serializers.UUIDField(source="debug_session.id", read_only=True)
+
+    class Meta:
+        model = ProjectImport
+        fields = [
+            "id",
+            "session_id",
+            "source_type",
+            "source_name",
+            "original_url",
+            "detected_stack",
+            "detected_target",
+            "files_checked",
+            "files_ignored",
+            "file_tree",
+            "total_files",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class ReadinessReportSummarySerializer(serializers.ModelSerializer):
+    """Lightweight readiness report for lists and session detail."""
+
+    session_id = serializers.UUIDField(source="debug_session.id", read_only=True)
+    project_id = serializers.UUIDField(source="debug_session.project.id", read_only=True)
+    project_name = serializers.CharField(source="debug_session.project.name", read_only=True)
+
+    class Meta:
+        model = ReadinessReport
+        fields = [
+            "id",
+            "session_id",
+            "project_id",
+            "project_name",
+            "readiness_score",
+            "severity",
+            "source_type",
+            "deployment_target",
+            "ai_used",
+            "created_at",
+        ]
+        read_only_fields = fields
+
+
+class ReadinessReportSerializer(ReadinessReportSummarySerializer):
+    """Full readiness report document."""
+
+    files_checked = serializers.SerializerMethodField()
+
+    class Meta(ReadinessReportSummarySerializer.Meta):
+        fields = ReadinessReportSummarySerializer.Meta.fields + [
+            "detected_stack",
+            "blocking_issues_json",
+            "warnings_json",
+            "improvements_json",
+            "passed_checks_json",
+            "recommendations_json",
+            "evidence_json",
+            "summary",
+            "patch_suggestions_json",
+            "action_plan_json",
+            "ai_insights_json",
+            "confidence_note",
+            "model_name",
+            "prompt_tokens",
+            "completion_tokens",
+            "files_checked",
+        ]
+        read_only_fields = fields
+
+    def get_files_checked(self, obj):
+        try:
+            return obj.debug_session.project_import.files_checked
+        except Exception:
+            return []

@@ -47,10 +47,15 @@ export default function ProjectDetailPage() {
                   "No stack metadata"}
               </p>
             </div>
-            <Link to={`/projects/${project.id}/new`} data-variant="primary" data-size="md">
-              <span className="btn__dot" aria-hidden="true" />
-              New analysis
-            </Link>
+            <div style={{ display: "flex", gap: "var(--space-3)", flexWrap: "wrap" }}>
+              <Link to={`/projects/${project.id}/readiness`} data-variant="primary" data-size="md">
+                <span className="btn__dot" aria-hidden="true" />
+                Scan readiness
+              </Link>
+              <Link to={`/projects/${project.id}/new`} data-variant="secondary" data-size="md">
+                Diagnose logs
+              </Link>
+            </div>
           </header>
 
           <h2 className="block__title">

@@ -41,6 +41,48 @@ def _session_bytes_used(session: DebugSession) -> int:
     return total
 
 
+def store_text(
+    session: DebugSession,
+    relpath: str,
+    file_type: str,
+    redacted_text: str,
+    used: list[int],
+    seen: set[str],
+    max_session: int,
+) -> UploadedFile | None:
+    """Persist one already-redacted text file, sharing budget/dedup state.
+
+    ``used`` is a one-element list so callers share the running byte count by
+    reference. Returns the stored UploadedFile or None on rejection.
+    """
+    content = redacted_text
+    size_bytes = len(content.encode("utf-8"))
+    digest = hashlib.sha256(content.encode("utf-8")).hexdigest()
+
+    if digest in seen:
+        return None
+    if used[0] + size_bytes > max_session:
+        return None
+
+    try:
+        stored = UploadedFile.objects.create(
+            debug_session=session,
+            filename=relpath,
+            file_type=file_type,
+            content=content,
+            content_sha256=digest,
+            size_bytes=size_bytes,
+            line_count=content.count("\n") + 1 if content else 0,
+            redaction_count=0,
+        )
+    except IntegrityError:
+        return None
+
+    seen.add(digest)
+    used[0] += size_bytes
+    return stored
+
+
 def ingest(session: DebugSession, items: list[tuple[str, bytes]]) -> IngestResult:
     """Validate, redact, and persist a batch of (filename, raw_bytes) uploads.
 

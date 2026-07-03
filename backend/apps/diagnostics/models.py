@@ -49,6 +49,17 @@ class SessionStatus(models.TextChoices):
     FAILED = "failed", "Failed"
 
 
+class SessionKind(models.TextChoices):
+    DIAGNOSIS = "diagnosis", "Diagnosis"
+    READINESS = "readiness", "Readiness"
+
+
+class SourceType(models.TextChoices):
+    GITHUB = "github", "GitHub"
+    ZIP = "zip", "ZIP"
+    FOLDER = "folder", "Folder"
+
+
 # Ordered worst-first so detected issues can be ranked deterministically in SQL.
 _SEVERITY_RANK = {Severity.HIGH: 0, Severity.MEDIUM: 1, Severity.LOW: 2}
 
@@ -151,6 +162,11 @@ class DebugSession(UUIDModel, TimeStampedModel):
         on_delete=models.CASCADE,
         related_name="sessions",
     )
+    kind = models.CharField(
+        max_length=20,
+        choices=SessionKind.choices,
+        default=SessionKind.DIAGNOSIS,
+    )
     status = models.CharField(
         max_length=20,
         choices=SessionStatus.choices,
@@ -174,6 +190,10 @@ class DebugSession(UUIDModel, TimeStampedModel):
             models.CheckConstraint(
                 check=Q(status__in=SessionStatus.values),
                 name="debug_session_status_valid",
+            ),
+            models.CheckConstraint(
+                check=Q(kind__in=SessionKind.values),
+                name="debug_session_kind_valid",
             ),
         ]
 
@@ -362,6 +382,122 @@ class DiagnosisReport(UUIDModel):
 
     def __str__(self) -> str:
         return f"Report for session {self.debug_session_id}"
+
+    @property
+    def owner_id(self):
+        return self.debug_session.project.user_id
+
+
+# ---------------------------------------------------------------------------
+# ProjectImport  (readiness pipeline — normalized project source metadata)
+# ---------------------------------------------------------------------------
+
+
+class ProjectImportQuerySet(models.QuerySet):
+    def for_user(self, user) -> ProjectImportQuerySet:
+        return self.filter(debug_session__project__user=user)
+
+
+class ProjectImport(UUIDModel, TimeStampedModel):
+    """Persisted ProjectSource for a readiness scan session.
+
+    Relative paths in file_tree/files_checked/files_ignored come from the
+    normalized import (GitHub zipball, ZIP, or folder upload). File *content*
+    lives in UploadedFile rows on the same session, so redaction + budget are
+    reused unchanged.
+    """
+
+    debug_session = models.OneToOneField(
+        DebugSession,
+        on_delete=models.CASCADE,
+        related_name="project_import",
+    )
+    source_type = models.CharField(max_length=20, choices=SourceType.choices)
+    source_name = models.CharField(max_length=500)
+    original_url = models.URLField(max_length=500, blank=True)
+    file_tree = models.JSONField(default=list)
+    files_checked = models.JSONField(default=list)
+    files_ignored = models.JSONField(default=list)
+    detected_stack = models.JSONField(default=list)
+    detected_target = models.CharField(max_length=100, blank=True)
+    total_files = models.PositiveIntegerField(default=0)
+
+    objects = ProjectImportQuerySet.as_manager()
+
+    class Meta:
+        db_table = "diagnostics_project_import"
+
+    def __str__(self) -> str:
+        return f"{self.source_type}:{self.source_name}"
+
+    @property
+    def owner_id(self):
+        return self.debug_session.project.user_id
+
+
+# ---------------------------------------------------------------------------
+# ReadinessReport  (readiness pipeline — analyzer + optional AI output)
+# ---------------------------------------------------------------------------
+
+
+class ReadinessReportQuerySet(models.QuerySet):
+    def for_user(self, user) -> ReadinessReportQuerySet:
+        return self.filter(debug_session__project__user=user)
+
+
+class ReadinessReport(UUIDModel):
+    """Deployment-readiness report for a project import session.
+
+    Score and structured checks come from the deterministic analyzer.
+    summary and patch_suggestions come from the optional AI layer (ai_used=False
+    when no key or when the AI call fails — the report still renders fully).
+    """
+
+    debug_session = models.OneToOneField(
+        DebugSession,
+        on_delete=models.CASCADE,
+        related_name="readiness_report",
+    )
+    readiness_score = models.PositiveIntegerField(default=0)
+    severity = models.CharField(max_length=20, choices=Severity.choices)
+    detected_stack = models.JSONField(default=list)
+    source_type = models.CharField(max_length=20, choices=SourceType.choices)
+    deployment_target = models.CharField(max_length=100, blank=True)
+    blocking_issues_json = models.JSONField(default=list)
+    warnings_json = models.JSONField(default=list)
+    improvements_json = models.JSONField(default=list)
+    passed_checks_json = models.JSONField(default=list)
+    recommendations_json = models.JSONField(default=list)
+    evidence_json = models.JSONField(default=list)
+    summary = models.TextField(blank=True)
+    patch_suggestions_json = models.JSONField(default=list)
+    action_plan_json = models.JSONField(default=list)
+    ai_insights_json = models.JSONField(default=list)
+    confidence_note = models.TextField(blank=True)
+    ai_used = models.BooleanField(default=False)
+    model_name = models.CharField(max_length=100, blank=True)
+    prompt_tokens = models.PositiveIntegerField(null=True, blank=True)
+    completion_tokens = models.PositiveIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = ReadinessReportQuerySet.as_manager()
+
+    class Meta:
+        db_table = "diagnostics_readiness_report"
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                check=Q(readiness_score__lte=100),
+                name="readiness_report_score_max",
+            ),
+            models.CheckConstraint(
+                check=Q(severity__in=Severity.values),
+                name="readiness_report_severity_valid",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return f"Readiness report for session {self.debug_session_id}"
 
     @property
     def owner_id(self):

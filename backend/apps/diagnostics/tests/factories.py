@@ -16,8 +16,12 @@ from apps.diagnostics.models import (
     DetectedIssue,
     DiagnosisReport,
     Project,
+    ProjectImport,
+    ReadinessReport,
+    SessionKind,
     SessionStatus,
     Severity,
+    SourceType,
     UploadedFile,
 )
 
@@ -87,6 +91,60 @@ class DetectedIssueFactory(factory.django.DjangoModelFactory):
             }
         ]
     )
+
+
+class ReadinessSessionFactory(DebugSessionFactory):
+    """A readiness-kind session."""
+
+    kind = SessionKind.READINESS
+
+
+class ProjectImportFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ProjectImport
+
+    debug_session = factory.SubFactory(ReadinessSessionFactory)
+    source_type = SourceType.GITHUB
+    source_name = "owner/repo"
+    original_url = "https://github.com/owner/repo"
+    file_tree = factory.LazyFunction(lambda: ["README.md", "Dockerfile", "requirements.txt"])
+    files_checked = factory.LazyFunction(lambda: ["README.md", "Dockerfile", "requirements.txt"])
+    files_ignored = factory.LazyFunction(lambda: ["node_modules/something.js"])
+    detected_stack = factory.LazyFunction(lambda: ["Django"])
+    detected_target = "docker"
+    total_files = 3
+
+
+class ReadinessReportFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = ReadinessReport
+
+    debug_session = factory.SubFactory(ReadinessSessionFactory)
+    readiness_score = 75
+    severity = Severity.MEDIUM
+    detected_stack = factory.LazyFunction(lambda: ["Django"])
+    source_type = SourceType.GITHUB
+    deployment_target = "docker"
+    blocking_issues_json = factory.LazyFunction(list)
+    warnings_json = factory.LazyFunction(
+        lambda: [
+            {
+                "id": "has_env_example",
+                "description": "No .env.example found.",
+                "recommendation": "Add a .env.example.",
+            }
+        ]
+    )
+    improvements_json = factory.LazyFunction(list)
+    passed_checks_json = factory.LazyFunction(
+        lambda: [{"id": "has_readme", "description": "README.md found.", "source": "README.md"}]
+    )
+    recommendations_json = factory.LazyFunction(lambda: ["Add a .env.example."])
+    evidence_json = factory.LazyFunction(list)
+    summary = ""
+    patch_suggestions_json = factory.LazyFunction(list)
+    ai_used = False
+    model_name = ""
 
 
 class DiagnosisReportFactory(factory.django.DjangoModelFactory):
