@@ -171,3 +171,6 @@ optional PR suggestions behind safety controls · cloud object storage.
 - Evidence-first design that measurably **reduces hallucination risk**.
 - Production-minded from day one: split settings, throttling, ownership scoping,
   secret redaction, schema validation, and a test strategy that mocks the model.
+- AI coding assistants were used for scaffolding, debugging, refactoring, and
+  review; I designed the architecture, validated the logic, tested the app, and
+  handled deployment.
